@@ -2,8 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+using UnityEngine;
+using UnityEngine;
+
+using UnityEngine;
+
 public class MovimientoPorCeldas : MonoBehaviour
-{ 
+{
     public float cellSize = 1.0f; // Tamaño de cada casilla en Unity
     public float moveSpeed = 5.0f; // Velocidad de movimiento entre casillas
     public Vector2 gridOrigin = new Vector2(-0.5f, 1.2f); // Origen de la grilla (posición inicial del personaje)
@@ -11,6 +16,8 @@ public class MovimientoPorCeldas : MonoBehaviour
     private Vector2 targetPosition; // Posición objetivo del personaje
     private Animator animator; // Referencia al Animator
     private Vector2 movementDirection; // Dirección del movimiento actual
+    private bool isMoving = false; // Controla si el personaje está en movimiento
+    private Vector2 inputDirection; // Dirección de entrada del jugador
 
     void Start()
     {
@@ -28,32 +35,42 @@ public class MovimientoPorCeldas : MonoBehaviour
         Vector2 currentPosition = transform.position;
         transform.position = Vector2.MoveTowards(currentPosition, targetPosition, moveSpeed * Time.deltaTime);
 
+        // Si ha llegado a la celda objetivo, permitir nuevo movimiento
+        if ((Vector2)transform.position == targetPosition)
+        {
+            isMoving = false;
+            DetectMovementInput(); // Detecta la siguiente entrada de movimiento
+        }
+
         // Actualiza la dirección del movimiento
         movementDirection = targetPosition - currentPosition;
-
-        // Control de animaciones
         UpdateAnimations();
+    }
 
-        // Detecta clics del mouse
-        if (Input.GetMouseButtonDown(0)) // Clic izquierdo
+    void DetectMovementInput()
+    {
+        // Detecta la entrada de movimiento continuo
+        inputDirection = Vector2.zero;
+
+        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow)) inputDirection = Vector2.up;
+        if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow)) inputDirection = Vector2.down;
+        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow)) inputDirection = Vector2.left;
+        if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) inputDirection = Vector2.right;
+
+        if (inputDirection != Vector2.zero)
         {
-            // Obtén la posición del mouse en el mundo
-            Vector3 mouseWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            Vector2 newTargetPosition = targetPosition + inputDirection * cellSize;
 
-            // Calcula la celda más cercana al clic
-            Vector2 clickedGridPosition = SnapToGrid(mouseWorldPosition);
-
-            // Solo permite movimientos ortogonales (no diagonales)
-            if (IsOrthogonalMove(clickedGridPosition))
+            if (IsOrthogonalMove(newTargetPosition)) // Solo mueve si es válido
             {
-                targetPosition = clickedGridPosition; // Mueve al personaje al centro de la casilla
+                targetPosition = newTargetPosition;
+                isMoving = true;
             }
         }
     }
 
     Vector2 SnapToGrid(Vector2 position)
     {
-        // Calcula el centro de la casilla más cercana basada en el origen de la grilla
         float snappedX = Mathf.Round((position.x - gridOrigin.x) / cellSize) * cellSize + gridOrigin.x;
         float snappedY = Mathf.Round((position.y - gridOrigin.y) / cellSize) * cellSize + gridOrigin.y;
 
@@ -62,25 +79,22 @@ public class MovimientoPorCeldas : MonoBehaviour
 
     bool IsOrthogonalMove(Vector2 newPosition)
     {
-        // Calcula la diferencia entre la posición actual y la nueva posición
         Vector2 difference = newPosition - (Vector2)transform.position;
-
-        // Solo permite movimientos horizontales o verticales
         return (Mathf.Abs(difference.x) > 0 && Mathf.Abs(difference.y) == 0) ||
                (Mathf.Abs(difference.y) > 0 && Mathf.Abs(difference.x) == 0);
     }
 
     void UpdateAnimations()
     {
-        // Comprueba si el personaje está en movimiento
-        bool isMoving = movementDirection.magnitude > 0.01f;
+        // Si el personaje se está moviendo, actualizar animaciones
+        bool isMovingAnim = isMoving || inputDirection != Vector2.zero;
 
-        // Envía los parámetros al Animator
-        animator.SetFloat("Horizontal", movementDirection.x);
-        animator.SetFloat("Vertical", movementDirection.y);
-        animator.SetBool("IsMoving", isMoving);
+        animator.SetFloat("Horizontal", inputDirection.x);
+        animator.SetFloat("Vertical", inputDirection.y);
+        animator.SetBool("IsMoving", isMovingAnim);
     }
 }
+
 
 
 
