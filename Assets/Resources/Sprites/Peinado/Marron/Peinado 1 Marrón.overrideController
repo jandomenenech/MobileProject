@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: "Peinado 1 Marr\xF3n"
+  m_Controller: {fileID: 9100000, guid: 0e1373a1ce406a142bc8d552033b28b1, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: 7400000, guid: 686764733d6e9474781b240843ec1cd0, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: ac3b3784a64e27d4faae1ad36c170108, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 1debdbaa6e7b8a7409a6305700f8f724, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 7ce4a480fc0b563418d341d2f33014cc, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: cb4a0cadadec03a4cb2c44723ea74000, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 9e7ed38726751fb4eaffb0008cee8f7b, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 85b0e5e96954d98448e2964d0b96d541, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 9b972795cc1628c4b950c004ca06a604, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 6ed59e38a50b0d542bbe748ac2d4966d, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 0183799a4ea6bc047a761307bbe6bd92, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 32e8ba18fddee8349a77598f07dd7dc1, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: a46df0bde89b6da4cb4fe24b9f83bd44, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: d0c06b9fff330244cbac264a2d65b649, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: a0d384925dfe1024aa30362bef90e6f6, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 8533b2a07f7b1ab43823ab33d9516e21, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: f3fe9d6caaa99a747b8a8ac14f2778da, type: 2}
