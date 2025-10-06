@@ -32,6 +32,16 @@ public class InventarioGrafico : MonoBehaviour
                 ObjetoRecogible objeto = o.GetComponent<ObjetoRecogible>();
                 celdas[i].texture = objeto.textura;
                 celdas[i].color = new Color(1f, 1f, 1f, 1f);
+
+                if (i == 0 && o.name.ToLower().Contains("hacha"))
+                {
+                    inv.EquiparHacha();
+                    
+                }
+                else
+                {
+                    inv.DesequiparHacha();
+                }
             }
             else
             {

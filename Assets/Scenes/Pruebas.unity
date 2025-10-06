@@ -291,6 +291,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Personaje
       objectReference: {fileID: 0}
+    - target: {fileID: 5950398691137840738, guid: cd70603cd15700143a382b233de8a27e, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 0d57d364d82ddfd45a0c892a21608a4f, type: 2}
     - target: {fileID: 8560379821251945334, guid: cd70603cd15700143a382b233de8a27e, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.013110161

@@ -250,7 +250,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93cd43aa1a22b214fa5d5317699c0012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player: {fileID: 5950398691137840738}
+  player: {fileID: 0}
 --- !u!95 &8292953287911490236
 Animator:
   serializedVersion: 7
@@ -283,8 +283,8 @@ GameObject:
   m_Component:
   - component: {fileID: 8560379821251945334}
   - component: {fileID: 918711164461533235}
-  - component: {fileID: 5950398691137840738}
   - component: {fileID: 3612753557370599839}
+  - component: {fileID: 1974624712143197238}
   m_Layer: 0
   m_Name: Personaje
   m_TagString: Untagged
@@ -365,28 +365,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!95 &5950398691137840738
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2991010421433610865}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 22100000, guid: 73413dae2db25dc449e979302e1b0c3d, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!114 &3612753557370599839
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -402,6 +380,52 @@ MonoBehaviour:
   cellSize: 1
   moveSpeed: 5
   gridOrigin: {x: -0.5, y: 1.2}
+--- !u!61 &1974624712143197238
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2991010421433610865}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0.29999998}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.4}
+    oldSize: {x: 3, y: 3}
+    newSize: {x: 3, y: 3}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Size: {x: 1, y: 0.99999994}
+  m_EdgeRadius: 0
 --- !u!1 &4447603193458866337
 GameObject:
   m_ObjectHideFlags: 0
@@ -729,7 +753,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93cd43aa1a22b214fa5d5317699c0012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player: {fileID: 5950398691137840738}
+  player: {fileID: 0}
 --- !u!1 &8949756342565875307
 GameObject:
   m_ObjectHideFlags: 0

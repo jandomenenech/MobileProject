@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,6 +8,13 @@ public class Inventario : MonoBehaviour
     public GameObject inventarioGrafico;
     public InventarioGrafico inv;
     public ObjetoRecogible recoger;
+    public Arbusto arbusto;
+
+
+    [Header("Hacha")]
+    public GameObject hachaPrefab;
+    public Transform mano;
+    private GameObject hacha;
 
     public bool isActive = false;
 
@@ -18,6 +24,12 @@ public class Inventario : MonoBehaviour
         objeto = null;
         inventario = new List<GameObject>();
         inventarioGrafico.SetActive(isActive);
+        int cantidadSlots = inv.celdas.Count;
+        while (inventario.Count < cantidadSlots)
+        {
+            inventario.Add(null);
+        }
+
     }
 
     // Update is called once per frame
@@ -26,6 +38,9 @@ public class Inventario : MonoBehaviour
         obtenerObjeto();
         //soltarObjeto();
         activarInventario();
+        
+
+
     }
 
     public void obtenerObjeto() {
@@ -42,10 +57,26 @@ public class Inventario : MonoBehaviour
 
     private void RecogerObjeto()
     {
-        inventario.Add(objeto);
+        if (objeto == null) return;
+
+        // Buscar primer espacio vacío
+        int indiceLibre = inventario.FindIndex(item => item == null);
+
+        if (indiceLibre != -1)
+        {
+            inventario[indiceLibre] = objeto;
+        }
+        else
+        {
+            inventario.Add(objeto); // Opcional: agrega al final si no hay espacio
+        }
+
         objeto.SetActive(false);
-        
+        inv.imagenesInventario();
+
+       
     }
+
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -109,7 +140,26 @@ public class Inventario : MonoBehaviour
             }
             
         }
+
     }
 
-            
+    public void EquiparHacha()
+    {
+        foreach (Transform child in mano)
+        {
+            Destroy(child.gameObject);
+        }
+
+        hacha = Instantiate(hachaPrefab, mano.position, mano.rotation);
+        hacha.transform.SetParent(mano);
+    }
+
+
+    public void DesequiparHacha()
+    {
+        Destroy(hacha); 
+    }
+
+    
+
 }

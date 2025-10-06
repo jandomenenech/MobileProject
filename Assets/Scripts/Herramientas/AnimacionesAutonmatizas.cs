@@ -9,9 +9,9 @@ public class AnimacionesAutomatizadas : MonoBehaviour
     [MenuItem("Tools/Crear Animaciones por Dirección")]
     public static void CrearAnimacionesPorDireccion()
     {
-        string itemBase = "Peinado 1 Marrón"; // Cambia esto según el ítem base
+        string itemBase = "Hacha 1"; // Cambia esto según el ítem base
         string[] direcciones = { "AP", "PA", "Perfil L", "Perfil R" };
-        string resourcePath = "Sprites/Peinado/Marron";
+        string resourcePath = "Sprites/Hacha";
 
         Sprite[] allSprites = Resources.LoadAll<Sprite>(resourcePath);
 

@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -7,18 +5,21 @@ using UnityEngine.UI;
 public class InventarioInteractivo : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler
 {
     public RawImage rawImage;
+    public RectTransform areaInventario;
+    public Inventario inventario;
+    public int indexEnInventario;
+
     private Transform originalParent;
     private Vector2 originalPosition;
     private CanvasGroup canvasGroup;
-    public RectTransform areaInventario; 
-    public Inventario inventario;
-    public int indexEnInventario;
+    private bool dropExitoso = false;
 
     void Start()
     {
         rawImage = GetComponent<RawImage>();
         canvasGroup = GetComponent<CanvasGroup>();
     }
+
     public void OnBeginDrag(PointerEventData eventData)
     {
         originalParent = transform.parent;
@@ -35,11 +36,12 @@ public class InventarioInteractivo : MonoBehaviour, IBeginDragHandler, IDragHand
     {
         canvasGroup.blocksRaycasts = true;
 
-        if (!RectTransformUtility.RectangleContainsScreenPoint(areaInventario, Input.mousePosition))
+        // Si no hubo drop exitoso y se soltó fuera del área del inventario
+        if (!dropExitoso && !RectTransformUtility.RectangleContainsScreenPoint(areaInventario, Input.mousePosition))
         {
             Debug.Log("Soltar fuera del inventario");
 
-            if (inventario != null && indexEnInventario < inventario.inventario.Count)
+            if (inventario != null && indexEnInventario >= 0 && indexEnInventario < inventario.inventario.Count)
             {
                 GameObject objetoASoltar = inventario.inventario[indexEnInventario];
 
@@ -47,18 +49,18 @@ public class InventarioInteractivo : MonoBehaviour, IBeginDragHandler, IDragHand
                 {
                     objetoASoltar.transform.position = inventario.transform.position;
                     objetoASoltar.SetActive(true);
-                    inventario.inventario.RemoveAt(indexEnInventario);
+
+                    inventario.inventario[indexEnInventario] = null;
                     rawImage.texture = null;
                     rawImage.color = new Color(1f, 1f, 1f, 0f);
 
-                    inventario.inv.imagenesInventario(); 
+                    inventario.inv.imagenesInventario();
                 }
             }
         }
-        else
-        {
-            transform.position = originalPosition;
-        }
+
+        transform.position = originalPosition;
+        dropExitoso = false;
     }
 
     public void OnDrop(PointerEventData eventData)
@@ -66,17 +68,37 @@ public class InventarioInteractivo : MonoBehaviour, IBeginDragHandler, IDragHand
         InventarioInteractivo slotOrigen = eventData.pointerDrag.GetComponent<InventarioInteractivo>();
         if (slotOrigen != null)
         {
-            Texture temp = rawImage.texture;
-            rawImage.texture = slotOrigen.rawImage.texture;
-            slotOrigen.rawImage.texture = temp;
+            dropExitoso = true;
 
-            float alphaTemp = rawImage.color.a;
-            Color c1 = rawImage.color;
-            Color c2 = slotOrigen.rawImage.color;
+            bool indicesValidos =
+                inventario != null &&
+                slotOrigen.inventario != null &&
+                indexEnInventario >= 0 && indexEnInventario < inventario.inventario.Count &&
+                slotOrigen.indexEnInventario >= 0 && slotOrigen.indexEnInventario < slotOrigen.inventario.inventario.Count;
 
-            rawImage.color = new Color(c2.r, c2.g, c2.b, c2.a);
-            slotOrigen.rawImage.color = new Color(c1.r, c1.g, c1.b, c1.a);
+            if (indicesValidos)
+            {
+                // Intercambiar objetos reales (pueden ser null)
+                GameObject tempObjeto = inventario.inventario[indexEnInventario];
+                inventario.inventario[indexEnInventario] = slotOrigen.inventario.inventario[slotOrigen.indexEnInventario];
+                slotOrigen.inventario.inventario[slotOrigen.indexEnInventario] = tempObjeto;
+
+                // Intercambiar texturas visuales (pueden ser null)
+                Texture tempTexture = rawImage.texture;
+                rawImage.texture = slotOrigen.rawImage.texture;
+                slotOrigen.rawImage.texture = tempTexture;
+
+                // Intercambiar colores (para visibilidad del slot)
+                Color tempColor = rawImage.color;
+                rawImage.color = slotOrigen.rawImage.color;
+                slotOrigen.rawImage.color = tempColor;
+
+                inventario.inv.imagenesInventario();
+            }
+            else
+            {
+                Debug.LogWarning("Índices fuera de rango o inventarios no asignados.");
+            }
         }
     }
-
 }
