@@ -130,7 +130,8 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Hacha 1 AP 4 Atacar_0: -1246816159897589448
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

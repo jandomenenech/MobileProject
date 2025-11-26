@@ -5,24 +5,23 @@ using UnityEngine;
 public class MovimientoPorCeldas : MonoBehaviour
 {
     [Header("Grid")]
-    public float cellSize = 1.0f;     // Tamaño de cada casilla
-    public float moveSpeed = 5.0f;    // Velocidad de movimiento
-    public Vector2 gridOrigin = new Vector2(-0.5f, 1.2f); // Posición inicial
+    private float cellSize = 1.0f;     
+    [SerializeField] private float moveSpeed = 5.0f;   
+    private Vector2 gridOrigin = new Vector2(-0.5f, 1.2f); 
 
-    private Vector2 targetPosition;   // Posición objetivo
-    private Animator animator;        // Animator del personaje
-    private Vector2 movementDirection;// Dirección de movimiento
-    private bool isMoving = false;    // ¿Está moviéndose?
-    private Vector2 inputDirection;   // Entrada del jugador
+    private Vector2 targetPosition;   
+    private Animator animator;       
+    private Vector2 movementDirection;
+    private bool isMoving = false;    
+    private Vector2 inputDirection;   
 
-    // >>> Mantén una dirección inicial por defecto
-    private Vector2 lastInputDirection = Vector2.down; // Última dirección válida
+    private Vector2 lastInputDirection = Vector2.down;
 
     private Inventario inventario;
 
     [Header("Ataque / Gizmo")]
-    [SerializeField] private Transform attackCheck;      // Asigna en el inspector
-    [SerializeField] private SpriteRenderer spriteRenderer; // (Opcional) para flip del sprite
+    [SerializeField] private Transform attackCheck;      //
+    [SerializeField] private SpriteRenderer spriteRenderer; 
 
     // Offsets del gizmo por dirección
     [SerializeField] private Vector2 offsetRight = new Vector2(0.6f, 0f);
@@ -148,5 +147,11 @@ public class MovimientoPorCeldas : MonoBehaviour
     {
         if (attackCheck == null) return;
         Gizmos.DrawWireSphere(attackCheck.position, 0.2f);
+    }
+
+
+    public void setVelocidad(float velocidad)
+    {
+        moveSpeed = velocidad;
     }
 }

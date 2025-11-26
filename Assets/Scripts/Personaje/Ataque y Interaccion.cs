@@ -12,10 +12,12 @@ public class AtaqueyInteraccion : MonoBehaviour
     public LayerMask layerEnemy;
     [SerializeField] public float timeNextAttack;
     [SerializeField] public float timeIdle;
+    [SerializeField] private MovimientoPorCeldas move;
 
     private void Start()
     {
         animator = GetComponent<Animator>();
+        move = GetComponent<MovimientoPorCeldas>();
     }
     private void Update()
     {
@@ -25,8 +27,8 @@ public class AtaqueyInteraccion : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.Space) && timeNextAttack <= 0)
         {
-            animator.SetTrigger("Atacar");
-
+            /* animator.SetTrigger("Atacar");*/
+            /* Attack();*/
             timeNextAttack = timeIdle;
         }
     }
@@ -55,4 +57,19 @@ public class AtaqueyInteraccion : MonoBehaviour
 
     }
 
+    public void OnAttackStart()
+    {
+        move.setVelocidad(0);
+    }
+
+    public void OnAttackEnd()
+    {
+        move.setVelocidad(5);
+    }
+
+
+    public void detectarAtaque()
+    {
+        Attack();
+    }
 }
