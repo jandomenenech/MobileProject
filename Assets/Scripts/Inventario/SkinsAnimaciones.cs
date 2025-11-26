@@ -29,22 +29,29 @@ public class SkinsAnimaciones : MonoBehaviour
 
     void Update()
     {
-        // Solo si ambos animators están asignados
         if (player == null || animator == null) return;
 
-        // Copia los parámetros del Animator del personaje al del objeto
+        // Copiar parámetros
         animator.SetFloat("Horizontal", player.GetFloat("Horizontal"));
         animator.SetFloat("Vertical", player.GetFloat("Vertical"));
         animator.SetBool("IsMoving", player.GetBool("IsMoving"));
+
+        // Actualizar cooldown de ataque
         if (ataque.timeNextAttack > 0)
         {
             ataque.timeNextAttack -= Time.deltaTime;
         }
+
+        // Si presiona espacio y puede atacar
         if (Input.GetKeyDown(KeyCode.Space) && ataque.timeNextAttack <= 0)
         {
             animator.SetTrigger("Atacar");
-
+            player.SetTrigger("Atacar");
             ataque.timeNextAttack = ataque.timeIdle;
         }
+
     }
+
+    
+
 }
