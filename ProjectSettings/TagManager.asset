@@ -49,3 +49,9 @@ TagManager:
   - name: Background 2
     uniqueID: 1916921293
     locked: 0
+  - name: Background Collider 1
+    uniqueID: 1092753049
+    locked: 0
+  - name: Background Collider 2
+    uniqueID: 2225882609
+    locked: 0
