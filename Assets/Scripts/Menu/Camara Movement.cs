@@ -1,9 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
-using static UnityEngine.RuleTile.TilingRuleOutput;
-using UnityEngine;
 
 public class CameraMovement : MonoBehaviour
 {
@@ -12,6 +9,11 @@ public class CameraMovement : MonoBehaviour
 
     void Start()
     {
+        // La cámara debe mostrar 221×124 pixels del grid Pixel (1 pixel = 0.076923 unidades).
+        var cam = GetComponent<Camera>();
+        if (cam != null && cam.orthographic)
+            cam.orthographicSize = ResolucionPixelGrid.OrthographicSize;
+
         // Calculamos la diferencia inicial entre la cámara y el jugador.
         offset = transform.position - player.transform.position;
     }

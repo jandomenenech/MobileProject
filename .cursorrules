@@ -1,0 +1,98 @@
+You are an expert in C#, Unity, and scalable game development.
+
+Key Principles
+- Write clear, technical responses with precise C# and Unity examples.
+- Use Unity's built-in features and tools wherever possible to leverage its full capabilities.
+- Prioritize readability and maintainability; follow C# coding conventions and Unity best practices.
+- Use descriptive variable and function names; adhere to naming conventions (e.g., PascalCase for public members, camelCase for private members).
+- Structure your project in a modular way using Unity's component-based architecture to promote reusability and separation of concerns.
+
+C#/Unity
+- Use MonoBehaviour for script components attached to GameObjects; prefer ScriptableObjects for data containers and shared resources.
+- Leverage Unity's physics engine and collision detection system for game mechanics and interactions.
+- Use Unity's Input System for handling player input across multiple platforms.
+- Utilize Unity's UI system (Canvas, UI elements) for creating user interfaces.
+- Follow the Component pattern strictly for clear separation of concerns and modularity.
+- Use Coroutines for time-based operations and asynchronous tasks within Unity's single-threaded environment.
+
+Error Handling and Debugging
+- Implement error handling using try-catch blocks where appropriate, especially for file I/O and network operations.
+- Use Unity's Debug class for logging and debugging (e.g., Debug.Log, Debug.LogWarning, Debug.LogError).
+- Utilize Unity's profiler and frame debugger to identify and resolve performance issues.
+- Implement custom error messages and debug visualizations to improve the development experience.
+- Use Unity's assertion system (Debug.Assert) to catch logical errors during development.
+
+Dependencies
+- Unity Engine
+- .NET Framework (version compatible with your Unity version)
+- Unity Asset Store packages (as needed for specific functionality)
+- Third-party plugins (carefully vetted for compatibility and performance)
+
+Unity-Specific Guidelines
+- Use Prefabs for reusable game objects and UI elements.
+- Keep game logic in scripts; use the Unity Editor for scene composition and initial setup.
+- Utilize Unity's animation system (Animator, Animation Clips) for character and object animations.
+- Apply Unity's built-in lighting and post-processing effects for visual enhancements.
+- Use Unity's built-in testing framework for unit testing and integration testing.
+- Leverage Unity's asset bundle system for efficient resource management and loading.
+- Use Unity's tag and layer system for object categorization and collision filtering.
+
+Performance Optimization
+- Use object pooling for frequently instantiated and destroyed objects.
+- Optimize draw calls by batching materials and using atlases for sprites and UI elements.
+- Implement level of detail (LOD) systems for complex 3D models to improve rendering performance.
+- Use Unity's Job System and Burst Compiler for CPU-intensive operations.
+- Optimize physics performance by using simplified collision meshes and adjusting fixed timestep.
+
+Key Conventions
+1. Follow Unity's component-based architecture for modular and reusable game elements.
+2. Prioritize performance optimization and memory management in every stage of development.
+3. Maintain a clear and logical project structure to enhance readability and asset management.
+
+Project-Specific Rules
+
+Grid System and Cell Size
+- The project uses a grid-based movement system where each cell is 13x13 pixels.
+- Sprites use Pixels Per Unit = 13, so 1 Unity unit = 13 pixels = 1 cell. Therefore cell size in world space is 1.0f, not 0.13f.
+- Grid calculations should use: `float cellSize = 1.0f;` or `const float CELL_SIZE = 1.0f;`
+- When snapping positions to grid: snap to whole Unity units (e.g. `Mathf.Round(position.x)`, `Mathf.Round(position.y)`) when using PPU 13.
+- Sprite dimensions should be multiples of 13 pixels when possible for perfect grid alignment.
+- When importing sprites, ensure they align with the 13x13px cell grid system.
+
+Sprite Import Settings (match Personaje reference)
+- Use the Personaje sprites (e.g. Assets/Resources/Sprites/Personaje/AP/, Assets/Sprites/Personaje/) as the reference for all character/entity sprites.
+- Filter Mode: always "Point (no filter)". In .meta set `filterMode: 0` (0 = Point, 1 = Bilinear, 2 = Trilinear).
+- Pixels Per Unit: 13. In .meta set `spritePixelsToUnits: 13`. This makes 1 Unity unit = 1 cell (13px).
+- Pivot / centering in cell: sprites must be centered inside the cell, not on grid line intersections. Resolution is in multiples of 13 (cell size). Use alignment 9 (Custom).
+  - If the sprite occupies an ODD number of cells (e.g. 1x1, 3x3): use center pivot so the asset is centered in the cell(s). `spritePivot: {x: 0.5, y: 0.5}`.
+  - If the sprite occupies an EVEN number of cells (e.g. 2x2): use the base (bottom) so the feet align with the cell grid. `spritePivot: {x: 0.5, y: 0}` (bottom center). The Personaje uses (0.5, 0.4) for a multi-cell height with base alignment.
+  - GameObject Transform position must be at the center of the cell (e.g. 0.5, 0.5 for the first cell, 1.5, 0.5 for the next), not at grid line intersections (0, 0), so that the pivot sits in the cell center.
+- Sprite Mode: Single for one sprite per texture, Multiple for sprite sheets.
+- Compression Quality: 50 (default). textureType: 8 (Sprite). Ensure sprites are imported as Sprite (2D and UI).
+
+Centering in cell vs grid intersection
+- Sprites must encajar con la forma de las celdas y quedar en el centro de la casilla. Use the pivot rule by cell count: odd cells → center (0.5, 0.5); even cells → base (0.5, 0).
+- Place GameObjects at cell center in world space (e.g. 0.5, 0.5 for cell 0,0), not at grid line intersections (0, 0), so the sprite pivot lies in the middle of the cell.
+
+Animation System
+- Character animations use Animation Clips that animate SpriteRenderer.m_Sprite property.
+- Animation clips reference sprites using their fileID and GUID: `{fileID: <internalID>, guid: <textureGUID>, type: 3}` for sub-sprites in sprite sheets.
+- Animator Controllers should be organized with clear state names matching animation directions (AP, PA, Perfil L, etc.).
+- Use consistent naming: `[Character] Caminar [Direction].anim` for walk animations.
+- Animation timing: Use 60 fps sample rate, frame intervals of ~0.0833 seconds (1/12th second) for smooth 12 fps sprite animation.
+
+Movement System
+- The project uses `MovimientoPorCeldas` for grid-based movement.
+- With Pixels Per Unit = 13, one cell = 1 Unity unit; movement should snap to grid using cellSize = 1.0f.
+- Use `SnapToGrid()` methods that round positions to the nearest cell (whole units when using PPU 13).
+- Movement is orthogonal only (up, down, left, right), no diagonal movement.
+- Character orientation should update based on movement direction for proper sprite/animation display.
+
+Camera and UI reference (grid Pixel)
+- The game has a grid named "Pixel" that simulates game pixels. Each cell has size x: 0.076923, y: 0.076923, z: 1 (1/13 unit). Cells (gameplay) are 13×13 of these pixels = 1 Unity unit.
+- Reference resolution: 221×124 of those Pixel grid units. So view width = 221×0.076923 = 17 units, height = 124×0.076923 = 9.538 units.
+- Camera: orthographic, orthographic size = (124 × 0.076923) / 2 = 4.769231. No physical camera gate (projectionMatrixMode 0, GateFitMode 0).
+- Canvas: Screen Space - Camera, reference resolution 221×124, Reference Pixels Per Unit 13, Match 0.5.
+- Inventario panel: must match camera view exactly — size 221×124 (see ResolucionPixelGrid and InventarioGrafico.AjustarTamanoPanelInventario).
+
+Refer to Unity documentation and C# programming guides for best practices in scripting, game architecture, and performance optimization.

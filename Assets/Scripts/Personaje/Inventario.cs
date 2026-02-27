@@ -1,6 +1,8 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[DefaultExecutionOrder(100)]
 public class Inventario : MonoBehaviour
 {
     public List<GameObject> inventario;
@@ -14,10 +16,25 @@ public class Inventario : MonoBehaviour
     [Header("Hacha")]
     public GameObject hachaPrefab;
     public Transform mano;
+    [Tooltip("Distancia del hacha respecto al cuerpo en la direccion en que mira (ej. 0.5).")]
+    [SerializeField] private float offsetHachaDireccion = 0.5f;
     private GameObject hacha;
+
+    // true si el personaje tiene el hacha equipada (para que otros scripts,
+    // como el de movimiento, puedan saberlo y mostrar/ocultar la hacha visual).
+    [HideInInspector] public bool tieneHachaEquipada = false;
+
+    [Header("Armadura")]
+    [Tooltip("Objeto en el slot de armadura (null si no hay ninguna).")]
+    [HideInInspector] public GameObject slotArmadura;
+    [Tooltip("Visual de la armadura equipada (se activa al tener armadura en el slot). Asigna el GameObject que muestra Armadura 2.")]
+    public GameObject armaduraEquipadaVisual;
 
     public bool isActive = false;
 
+    [Header("Ba�l")]
+    [Tooltip("Ba�l cuyo inventario est� abierto (null si ninguno).")]
+    [HideInInspector] public BaulInteractuable BaulAbierto;
 
     void Start()
     {
@@ -29,18 +46,19 @@ public class Inventario : MonoBehaviour
         {
             inventario.Add(null);
         }
-
+        // Asegurar que al empezar la partida no haya hacha equipada
+        DesequiparHacha();
+        DesequiparArmadura();
     }
 
-    // Update is called once per frame
     void Update()
     {
         obtenerObjeto();
-        //soltarObjeto();
         activarInventario();
-        
-
-
+        TryAccionConF();
+        ProcesarTeclasAccesoRapido();
+        if (tieneHachaEquipada && hacha != null)
+            ActualizarPosicionYDireccionHacha();
     }
 
     public void obtenerObjeto() {
@@ -59,24 +77,62 @@ public class Inventario : MonoBehaviour
     {
         if (objeto == null) return;
 
-        // Buscar primer espacio vac�o
+        // Buscar primer espacio vac�o
         int indiceLibre = inventario.FindIndex(item => item == null);
 
         if (indiceLibre != -1)
         {
             inventario[indiceLibre] = objeto;
+            Debug.Log($"Inventario: a�adido '{objeto.name}' en el slot {indiceLibre + 1}.");
         }
         else
         {
             inventario.Add(objeto); // Opcional: agrega al final si no hay espacio
+            Debug.Log($"Inventario: a�adido '{objeto.name}' al final (sin huecos libres previos).");
         }
 
         objeto.SetActive(false);
         inv.imagenesInventario();
-
-       
     }
 
+    /// <summary>
+    /// Intercambia o mueve el objeto entre dos slots (para drag &amp; drop en la UI).
+    /// </summary>
+    public void MoverObjetoEntreSlots(int desde, int hasta)
+    {
+        if (desde == hasta) return;
+        if (inventario == null || desde < 0 || desde >= inventario.Count || hasta < 0 || hasta >= inventario.Count)
+            return;
+
+        GameObject temp = inventario[desde];
+        inventario[desde] = inventario[hasta];
+        inventario[hasta] = temp;
+
+        if (inv != null)
+            inv.imagenesInventario();
+    }
+
+    /// <summary>
+    /// Suelta el objeto del slot en el mundo, en la posici�n actual del personaje.
+    /// Si el objeto es el hacha y est� equipada, la desequipa antes.
+    /// </summary>
+    public void SoltarObjetoEnMundo(int slotIndex)
+    {
+        if (inventario == null || slotIndex < 0 || slotIndex >= inventario.Count) return;
+        GameObject obj = inventario[slotIndex];
+        if (obj == null) return;
+
+        if (obj.name.ToLower().Contains("hacha") && tieneHachaEquipada)
+            DesequiparHacha();
+
+        var movimiento = GetComponent<MovimientoPorCeldas>();
+        Vector2 posCelda = movimiento != null ? movimiento.GetPosicionCeldaActual() : (Vector2)transform.position;
+        obj.transform.position = posCelda;
+        obj.SetActive(true);
+        inventario[slotIndex] = null;
+        if (inv != null)
+            inv.imagenesInventario();
+    }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -125,41 +181,445 @@ public class Inventario : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Tab))
         {
-            if(isActive == false)
+            if (isActive == false)
             {
                 isActive = true;
                 inventarioGrafico.SetActive(isActive);
                 inv.imagenesInventario();
-                
             }
             else if (isActive == true)
             {
                 isActive = false;
                 inventarioGrafico.SetActive(isActive);
                 inv.imagenesInventario();
+                if (BaulAbierto != null)
+                {
+                    if (BaulAbierto.panelInventarioBaul != null)
+                        BaulAbierto.panelInventarioBaul.SetActive(false);
+                    BaulAbierto.Cerrar();
+                    BaulAbierto = null;
+                }
             }
-            
+        }
+    }
+
+    /// <summary>
+    /// Abre el inventario del personaje y el panel del ba�l. Llamado por BaulInteractuable.Abrir().
+    /// </summary>
+    public void AbrirInventarioConBaul(BaulInteractuable baul)
+    {
+        if (baul == null) return;
+
+        GameObject panelBaul = baul.panelInventarioBaul;
+        if (panelBaul == null)
+        {
+            panelBaul = GameObject.Find("Inventario Ba�l");
+            if (panelBaul != null)
+                baul.panelInventarioBaul = panelBaul;
+            else
+                Debug.LogWarning("Inventario: no se encontr� el panel 'Inventario Ba�l'. Asigna 'Panel Inventario Baul' en el componente BaulInteractuable del ba�l.");
         }
 
+        BaulAbierto = baul;
+        isActive = true;
+        inventarioGrafico.SetActive(true);
+        inv.imagenesInventario();
+
+        if (panelBaul != null)
+        {
+            panelBaul.SetActive(true);
+            panelBaul.transform.SetAsLastSibling();
+            var invBaul = panelBaul.GetComponent<InventarioBaulGrafico>();
+            if (invBaul != null)
+                invBaul.Refrescar();
+        }
+    }
+
+    /// <summary>
+    /// Mueve un objeto del ba�l al slot del jugador (intercambio si el slot tiene objeto).
+    /// </summary>
+    public void RecibirItemDesdeBaul(BaulInteractuable baul, int slotBaul, int slotJugador)
+    {
+        if (baul == null || inventario == null || slotJugador < 0 || slotJugador >= inventario.Count) return;
+        GameObject itemBaul = baul.GetContenido(slotBaul);
+        GameObject itemJugador = inventario[slotJugador];
+        baul.SetContenido(slotBaul, itemJugador);
+        inventario[slotJugador] = itemBaul;
+        if (inv != null) inv.imagenesInventario();
+        if (baul.panelInventarioBaul != null)
+        {
+            var invBaul = baul.panelInventarioBaul.GetComponent<InventarioBaulGrafico>();
+            if (invBaul != null) invBaul.Refrescar();
+        }
+    }
+
+    /// <summary>
+    /// Mueve un objeto del inventario del jugador al slot del ba�l (intercambio si el slot tiene objeto).
+    /// </summary>
+    public void EnviarItemAlBaul(BaulInteractuable baul, int slotJugador, int slotBaul)
+    {
+        if (baul == null || inventario == null || slotJugador < 0 || slotJugador >= inventario.Count) return;
+        GameObject itemJugador = inventario[slotJugador];
+        if (itemJugador == null) return;
+
+        if (itemJugador.name.ToLower().Contains("hacha") && tieneHachaEquipada)
+            DesequiparHacha();
+        if (slotArmadura == itemJugador)
+        {
+            DesequiparArmadura();
+            slotArmadura = null;
+        }
+
+        GameObject itemBaul = baul.GetContenido(slotBaul);
+        inventario[slotJugador] = itemBaul;
+        baul.SetContenido(slotBaul, itemJugador);
+        if (inv != null) inv.imagenesInventario();
+        if (baul.panelInventarioBaul != null)
+        {
+            var invBaul = baul.panelInventarioBaul.GetComponent<InventarioBaulGrafico>();
+            if (invBaul != null) invBaul.Refrescar();
+        }
+    }
+
+    /// <summary>Mueve la armadura del slot armadura al ba�l.</summary>
+    public void EnviarArmaduraAlBaul(BaulInteractuable baul, int slotBaul)
+    {
+        if (baul == null || slotArmadura == null) return;
+        GameObject itemBaul = baul.GetContenido(slotBaul);
+        baul.SetContenido(slotBaul, slotArmadura);
+        slotArmadura = itemBaul;
+        if (slotArmadura != null)
+            EquiparArmadura(slotArmadura);
+        else
+            DesequiparArmadura();
+        if (inv != null) inv.imagenesInventario();
+        if (baul.panelInventarioBaul != null)
+        {
+            var invBaul = baul.panelInventarioBaul.GetComponent<InventarioBaulGrafico>();
+            if (invBaul != null) invBaul.Refrescar();
+        }
+    }
+
+    /// <summary>
+    /// Accion contextual con F: si hay un ba�l delante, lo abre; si hay un objeto
+    /// recogible (hacha o armadura) delante, lo recoge.
+    /// </summary>
+    private void TryAccionConF()
+    {
+        if (!Input.GetKeyDown(KeyCode.F)) return;
+        if (inventario == null || inv == null) return;
+
+        if (isActive && BaulAbierto != null)
+        {
+            if (BaulAbierto.panelInventarioBaul != null)
+                BaulAbierto.panelInventarioBaul.SetActive(false);
+            BaulAbierto.Cerrar();
+            BaulAbierto = null;
+            return;
+        }
+
+        if (isActive) return;
+
+        MovimientoPorCeldas move = GetComponent<MovimientoPorCeldas>();
+        if (move == null) return;
+
+        Vector2 playerPos = transform.position;
+        Vector2 dir = move.GetLastInputDirection();
+        if (dir.sqrMagnitude < 0.01f) return;
+
+        const float cellSize = 1f;
+        Vector2 cellInFront = playerPos + dir * cellSize;
+        Collider2D[] hits = Physics2D.OverlapCircleAll(cellInFront, 0.55f);
+        foreach (Collider2D col in hits)
+        {
+            if (col == null || !col.gameObject.activeInHierarchy) continue;
+
+            Vector2 toObject = ((Vector2)col.transform.position - playerPos).normalized;
+            if (Vector2.Dot(toObject, dir) < 0.7f) continue;
+
+            GameObject go = col.gameObject;
+
+            // 1) Si es un baúl interactuable, abrirlo (solo desde la casilla inferior mirándolo).
+            var baul = go.GetComponent<BaulInteractuable>();
+            if (baul != null)
+            {
+                Vector2 delta = (Vector2)go.transform.position - playerPos;
+                // Queremos: jugador justo debajo del baúl (misma columna) y mirando hacia arriba.
+                bool mismaColumna = Mathf.Abs(delta.x) < 0.3f * cellSize;
+                bool baulArriba = delta.y > 0.3f * cellSize;
+                bool mirandoArriba = dir.y > 0.7f && Mathf.Abs(dir.x) < 0.2f;
+                if (mismaColumna && baulArriba && mirandoArriba)
+                {
+                    baul.Abrir();
+                    return;
+                }
+
+                // Si este collider es un baúl pero no cumple las condiciones (por ejemplo,
+                // es el baúl de al lado), seguimos buscando otros colliders en el bucle.
+                continue;
+            }
+
+            // 2) Si es un objeto recogible (hacha / armadura), recogerlo.
+            if (!go.CompareTag("Recogible")) continue;
+
+            string nombre = go.name;
+            if (!nombre.Contains("Hacha") && !nombre.Contains("Armadura")) continue;
+
+            objeto = go;
+            RecogerObjeto();
+            objeto = null;
+            return;
+        }
+    }
+
+    /// <summary>
+    /// Teclas 1?4: usan el objeto de los slots 1?4 del inventario.
+    /// De momento, para probar, si el slot tiene un hacha se equipa / desequipa.
+    /// </summary>
+    private void ProcesarTeclasAccesoRapido()
+    {
+        if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1)) UsarSlotRapido(0);
+        if (Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Keypad2)) UsarSlotRapido(1);
+        if (Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.Keypad3)) UsarSlotRapido(2);
+        if (Input.GetKeyDown(KeyCode.Alpha4) || Input.GetKeyDown(KeyCode.Keypad4)) UsarSlotRapido(3);
+    }
+
+    private void UsarSlotRapido(int index)
+    {
+        if (inventario == null) return;
+        if (index < 0 || index >= inventario.Count) return;
+
+        GameObject item = inventario[index];
+        if (item == null) return;
+
+        // De momento solo hacha. Si el slot contiene un objeto cuyo nombre incluye "hacha",
+        // la tecla alterna entre equipar y desequipar.
+        if (item.name.ToLower().Contains("hacha"))
+        {
+            if (!tieneHachaEquipada)
+            {
+                Debug.Log($"Acceso r�pido {index + 1}: equipar hacha desde el slot {index + 1}.");
+                EquiparHacha();
+            }
+            else
+            {
+                Debug.Log($"Acceso r�pido {index + 1}: desequipar hacha.");
+                DesequiparHacha();
+            }
+        }
     }
 
     public void EquiparHacha()
     {
-        foreach (Transform child in mano)
+        Transform puntoEquipo = mano != null ? mano : BuscarManoOTool();
+        if (puntoEquipo == null)
+        {
+            Debug.LogWarning("Inventario: no hay transform 'mano' asignado ni hijo 'mano'/'tool'. Asigna 'mano' en el Inspector.");
+            return;
+        }
+        if (hachaPrefab == null)
+        {
+            Debug.LogWarning("Inventario: no hay hachaPrefab asignado. Asigna el prefab del hacha en el Inspector.");
+            return;
+        }
+
+        puntoEquipo.gameObject.SetActive(true);
+
+        // Desactivar el SpriteRenderer del propio "tool"/"mano" (suele estar vac�o) para que no tape el hacha
+        var srMano = puntoEquipo.GetComponent<SpriteRenderer>();
+        if (srMano != null)
+            srMano.enabled = false;
+
+        foreach (Transform child in puntoEquipo)
         {
             Destroy(child.gameObject);
         }
 
-        hacha = Instantiate(hachaPrefab, mano.position, mano.rotation);
-        hacha.transform.SetParent(mano);
-    }
+        hacha = Instantiate(hachaPrefab, puntoEquipo.position, puntoEquipo.rotation);
+        hacha.transform.SetParent(puntoEquipo);
+        hacha.transform.localPosition = Vector3.zero;
+        hacha.transform.localRotation = Quaternion.identity;
+        hacha.transform.localScale = Vector3.one;
+        hacha.SetActive(true);
 
+        // SpriteRenderer del cuerpo (no el de "tool") para copiar capa y orden y que el hacha se dibuje encima
+        SpriteRenderer srCuerpo = null;
+        var bodyT = transform.Find("body");
+        if (bodyT != null) srCuerpo = bodyT.GetComponent<SpriteRenderer>();
+        if (srCuerpo == null)
+        {
+            foreach (var sr in GetComponentsInChildren<SpriteRenderer>(true))
+            {
+                if (sr == null) continue;
+                if (sr.transform.IsChildOf(puntoEquipo)) continue;
+                srCuerpo = sr;
+                break;
+            }
+        }
+
+        foreach (var sr in hacha.GetComponentsInChildren<SpriteRenderer>(true))
+        {
+            if (sr != null)
+            {
+                sr.gameObject.SetActive(true);
+                sr.enabled = true;
+                if (srCuerpo != null)
+                {
+                    sr.sortingLayerID = srCuerpo.sortingLayerID;
+                    sr.sortingOrder = srCuerpo.sortingOrder + 5; // Por encima del cuerpo para que se vea
+                }
+                else
+                {
+                    try { sr.sortingLayerName = "Player"; } catch { }
+                    sr.sortingOrder = 1;
+                }
+            }
+        }
+
+        tieneHachaEquipada = true;
+        ActualizarPosicionYDireccionHacha();
+    }
 
     public void DesequiparHacha()
     {
-        Destroy(hacha); 
+        if (hacha != null)
+        {
+            Destroy(hacha);
+            hacha = null;
+        }
+
+        Transform puntoEquipo = mano ?? (transform.Find("legs/tool") ?? BuscarManoOTool());
+        if (puntoEquipo != null)
+        {
+            foreach (Transform child in puntoEquipo)
+                Destroy(child.gameObject);
+            var srMano = puntoEquipo.GetComponent<SpriteRenderer>();
+            if (srMano != null) srMano.enabled = true;
+        }
+
+        tieneHachaEquipada = false;
     }
 
-    
+    void ActualizarPosicionYDireccionHacha()
+    {
+        var move = GetComponent<MovimientoPorCeldas>();
+        if (move == null || hacha == null) return;
 
+        Vector2 dir = move.GetLastInputDirection();
+        if (dir.sqrMagnitude < 0.01f) dir = Vector2.down;
+        float h = dir.x;
+        float v = dir.y;
+        bool isMoving = move.IsMoving;
+
+        Transform puntoEquipo = mano != null ? mano : BuscarManoOTool();
+        if (puntoEquipo != null)
+            puntoEquipo.localPosition = Vector3.zero;
+
+        foreach (var a in hacha.GetComponentsInChildren<Animator>(true))
+        {
+            if (a == null) continue;
+            a.SetFloat("Horizontal", h);
+            a.SetFloat("Vertical", v);
+            a.SetBool("IsMoving", isMoving);
+            // Mantener siempre activo el Animator del hacha para que pueda atacar estando parado.
+            if (!a.enabled)
+                a.enabled = true;
+        }
+    }
+
+    Transform BuscarManoOTool()
+    {
+        foreach (Transform t in GetComponentsInChildren<Transform>(true))
+        {
+            string n = t.name.ToLowerInvariant();
+            if (n == "mano" || n == "tool") return t;
+        }
+        return null;
+    }
+
+    static bool EsArmadura(GameObject obj)
+    {
+        return obj != null && obj.name.ToLower().Contains("armadura");
+    }
+
+    public static bool EsObjetoArmadura(GameObject obj)
+    {
+        return EsArmadura(obj);
+    }
+
+    public void EquiparArmadura(GameObject obj)
+    {
+        GameObject visual = ObtenerVisualArmadura();
+        if (visual != null)
+        {
+            visual.SetActive(true);
+            // Activar tambien los padres (ej. "body") para que el armor sea visible
+            Transform p = visual.transform.parent;
+            while (p != null && p != transform)
+            {
+                if (!p.gameObject.activeSelf)
+                    p.gameObject.SetActive(true);
+                p = p.parent;
+            }
+            Debug.Log("[Inventario] Armadura equipada: activado '" + visual.name + "'");
+        }
+        else
+            Debug.LogWarning("[Inventario] No se encontro el visual de armadura (objeto 'armor') en el personaje.");
+    }
+
+    GameObject ObtenerVisualArmadura()
+    {
+        if (armaduraEquipadaVisual != null) return armaduraEquipadaVisual;
+        // Buscar solo en el personaje (no en transform.root para no pillar el UI "Slot Armadura")
+        Transform donde = transform;
+        foreach (Transform t in donde.GetComponentsInChildren<Transform>(true))
+        {
+            if (t == donde) continue;
+            string n = t.name ?? "";
+            if (n.Equals("armor", System.StringComparison.OrdinalIgnoreCase))
+                return t.gameObject;
+        }
+        foreach (Transform t in donde.GetComponentsInChildren<Transform>(true))
+        {
+            if (t == donde) continue;
+            string n = t.name ?? "";
+            if (n.IndexOf("Armadura", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                return t.gameObject;
+        }
+        return null;
+    }
+
+    public void DesequiparArmadura()
+    {
+        GameObject visual = ObtenerVisualArmadura();
+        if (visual != null)
+            visual.SetActive(false);
+    }
+
+    public void PonerEnSlotArmadura(int gridSlotIndex)
+    {
+        if (inventario == null || gridSlotIndex < 0 || gridSlotIndex >= inventario.Count) return;
+        GameObject obj = inventario[gridSlotIndex];
+        if (obj == null || !EsArmadura(obj)) return;
+        GameObject anterior = slotArmadura;
+        inventario[gridSlotIndex] = anterior;
+        slotArmadura = obj;
+        UnityEngine.Debug.Log("[Inventario] PonerEnSlotArmadura: equipando '" + obj.name + "'");
+        EquiparArmadura(obj);
+        if (inv != null) inv.imagenesInventario();
+    }
+
+    public void MoverArmaduraAGridSlot(int gridSlotIndex)
+    {
+        if (slotArmadura == null) return;
+        if (inventario == null || gridSlotIndex < 0 || gridSlotIndex >= inventario.Count) return;
+        GameObject temp = inventario[gridSlotIndex];
+        inventario[gridSlotIndex] = slotArmadura;
+        slotArmadura = temp;
+        if (slotArmadura != null)
+            EquiparArmadura(slotArmadura);
+        else
+            DesequiparArmadura();
+        if (inv != null) inv.imagenesInventario();
+    }
 }

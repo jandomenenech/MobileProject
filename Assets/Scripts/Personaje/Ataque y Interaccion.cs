@@ -27,9 +27,22 @@ public class AtaqueyInteraccion : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.Space) && timeNextAttack <= 0)
         {
-            /* animator.SetTrigger("Atacar");*/
-            /* Attack();*/
+            // Respetar el tiempo de reutilización entre ataques
             timeNextAttack = timeIdle;
+
+            // Disparar animación de ataque en el Animator principal
+            if (animator != null)
+                animator.SetTrigger("Atacar");
+
+            // Disparar animación de ataque en todas las skins/herramientas sincronizadas (pelo, armadura, hacha, etc.)
+            foreach (var skin in GetComponentsInChildren<SkinsAnimaciones>(true))
+            {
+                if (skin != null)
+                    skin.TriggerAtacar();
+            }
+
+            // Aplicar el daño/hitbox
+            Attack();
         }
     }
 

@@ -1,0 +1,810 @@
+fileFormatVersion: 2
+guid: d399b249056056241b8f3f549d023be5
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 158922904442552739
+    second: "Inventario Ba\xFAl_0"
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 13
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 1"
+      rect:
+        serializedVersion: 2
+        x: 130
+        y: 98
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c0701d87ecebacf4dab7cce365f2ed77
+      internalID: -816311027
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 2"
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 98
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dda1fee17f7e8f04fbe28d089b7393d4
+      internalID: -2073954932
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 3"
+      rect:
+        serializedVersion: 2
+        x: 156
+        y: 98
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1162d8f7fc2d03b40b0d3ce30f81c547
+      internalID: 1289109218
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 4"
+      rect:
+        serializedVersion: 2
+        x: 169
+        y: 98
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0e08fde524c3e2041a6daf0781726e95
+      internalID: -819385913
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 5"
+      rect:
+        serializedVersion: 2
+        x: 182
+        y: 98
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c1f6fab13281859469e82f6148d12b00
+      internalID: -777166059
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 6"
+      rect:
+        serializedVersion: 2
+        x: 130
+        y: 85
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4a24edc0cd2c20748b74a7c3521f3e07
+      internalID: -292851147
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 7"
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 85
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1d08b6fc0977e0c4ebc2bacbce61745d
+      internalID: -1940501945
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 8"
+      rect:
+        serializedVersion: 2
+        x: 156
+        y: 85
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ed46ca93c6f474445acc78a70426b779
+      internalID: -2103761125
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 9"
+      rect:
+        serializedVersion: 2
+        x: 169
+        y: 85
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a935d92680cae80488bd8bea047461f7
+      internalID: -531128942
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 10"
+      rect:
+        serializedVersion: 2
+        x: 182
+        y: 85
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e802ade11987a874f891de7d84a27df4
+      internalID: -280052564
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 11"
+      rect:
+        serializedVersion: 2
+        x: 130
+        y: 72
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cfcf25a483eeaf84caf3950c1d2b4b54
+      internalID: 711535097
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 12"
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 72
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 28d944b2505634e4981ba57bf6dddc1d
+      internalID: 1017787709
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 13"
+      rect:
+        serializedVersion: 2
+        x: 156
+        y: 72
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1df865214f42a7d41a9a940ce3e14697
+      internalID: -1134354086
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 14"
+      rect:
+        serializedVersion: 2
+        x: 169
+        y: 72
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cc8a10de96982ab41b089fdd660d1dfc
+      internalID: 1446221286
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 15"
+      rect:
+        serializedVersion: 2
+        x: 182
+        y: 72
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c3ae47fa4f1e4c94e8eadd9b059f79f8
+      internalID: 558207822
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 16"
+      rect:
+        serializedVersion: 2
+        x: 130
+        y: 59
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 56cac897cb2799c43b2039158a19efe2
+      internalID: 514121578
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 17"
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 59
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 92f4eabf6995c9543adc6dc001ca06b1
+      internalID: 532639780
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 18"
+      rect:
+        serializedVersion: 2
+        x: 156
+        y: 59
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6cb8fb69bfc31cd43b5daf0597c1ef8c
+      internalID: 446469667
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 19"
+      rect:
+        serializedVersion: 2
+        x: 169
+        y: 59
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4d3fb3261aad57047ab9e3104316ca96
+      internalID: -1160530310
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 20"
+      rect:
+        serializedVersion: 2
+        x: 182
+        y: 59
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ee8540cee6ad759489d75b6f3850ad31
+      internalID: -1167751421
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 21"
+      rect:
+        serializedVersion: 2
+        x: 130
+        y: 46
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e6f2183eb5b6bf147a957282f1ed06a1
+      internalID: -555131671
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 22"
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 46
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6bea30a123b4c0c49a3464bab77cb3e2
+      internalID: -2022196406
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 23"
+      rect:
+        serializedVersion: 2
+        x: 156
+        y: 46
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 178335ad9d5388446b4706fb07fcedd0
+      internalID: 1921616074
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 24"
+      rect:
+        serializedVersion: 2
+        x: 169
+        y: 46
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0bc283b6f45dfe74bb8cde6fecdc9d9f
+      internalID: -611811802
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 25"
+      rect:
+        serializedVersion: 2
+        x: 182
+        y: 46
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: adba39ea6e6368e42b3d318d379f00ad
+      internalID: 1607995565
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 26"
+      rect:
+        serializedVersion: 2
+        x: 130
+        y: 33
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0ab67e5a79db8f94e8348f84f70b33ef
+      internalID: -424332930
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 27"
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 33
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: aa8f4e3cf4fe4c54ebe9f6875490e096
+      internalID: -1719571698
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 28"
+      rect:
+        serializedVersion: 2
+        x: 156
+        y: 33
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bffe56190a83b7a4f86cd4b85d7ad392
+      internalID: -1287156551
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 29"
+      rect:
+        serializedVersion: 2
+        x: 169
+        y: 33
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5d1c9e7635288ce46a680de56905154f
+      internalID: 1006874
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Ba\xFAl Slot 30"
+      rect:
+        serializedVersion: 2
+        x: 182
+        y: 33
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0984d4d2717b69945967a6e9036772a3
+      internalID: -81325562
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: bc0bfb8681d1e9944b65895abf5767e0
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      "Inventario Ba\xFAl Slot 1": -816311027
+      "Inventario Ba\xFAl Slot 10": -280052564
+      "Inventario Ba\xFAl Slot 11": 711535097
+      "Inventario Ba\xFAl Slot 12": 1017787709
+      "Inventario Ba\xFAl Slot 13": -1134354086
+      "Inventario Ba\xFAl Slot 14": 1446221286
+      "Inventario Ba\xFAl Slot 15": 558207822
+      "Inventario Ba\xFAl Slot 16": 514121578
+      "Inventario Ba\xFAl Slot 17": 532639780
+      "Inventario Ba\xFAl Slot 18": 446469667
+      "Inventario Ba\xFAl Slot 19": -1160530310
+      "Inventario Ba\xFAl Slot 2": -2073954932
+      "Inventario Ba\xFAl Slot 20": -1167751421
+      "Inventario Ba\xFAl Slot 21": -555131671
+      "Inventario Ba\xFAl Slot 22": -2022196406
+      "Inventario Ba\xFAl Slot 23": 1921616074
+      "Inventario Ba\xFAl Slot 24": -611811802
+      "Inventario Ba\xFAl Slot 25": 1607995565
+      "Inventario Ba\xFAl Slot 26": -424332930
+      "Inventario Ba\xFAl Slot 27": -1719571698
+      "Inventario Ba\xFAl Slot 28": -1287156551
+      "Inventario Ba\xFAl Slot 29": 1006874
+      "Inventario Ba\xFAl Slot 3": 1289109218
+      "Inventario Ba\xFAl Slot 30": -81325562
+      "Inventario Ba\xFAl Slot 4": -819385913
+      "Inventario Ba\xFAl Slot 5": -777166059
+      "Inventario Ba\xFAl Slot 6": -292851147
+      "Inventario Ba\xFAl Slot 7": -1940501945
+      "Inventario Ba\xFAl Slot 8": -2103761125
+      "Inventario Ba\xFAl Slot 9": -531128942
+      "Inventario Ba\xFAl_0": 158922904442552739
+      "Inventario Ba\xFAl_1": 310841321
+      "Inventario Ba\xFAl_13": -1601893848
+      "Inventario Ba\xFAl_14": 1100587482
+      "Inventario Ba\xFAl_2": 1016378956
+      "Inventario Ba\xFAl_20": 985565605
+      "Inventario Ba\xFAl_21": 2073630127
+      "Inventario Ba\xFAl_27": 842883381
+      "Inventario Ba\xFAl_28": -1955931388
+      "Inventario Ba\xFAl_3": 14505446
+      "Inventario Ba\xFAl_34": 1497307412
+      "Inventario Ba\xFAl_35": 1131023569
+      "Inventario Ba\xFAl_4": 806896275
+      "Inventario Ba\xFAl_41": 1234258017
+      "Inventario Ba\xFAl_42": 1149636054
+      "Inventario Ba\xFAl_48": 783442686
+      "Inventario Ba\xFAl_49": -1794494431
+      "Inventario Ba\xFAl_5": -39792968
+      "Inventario Ba\xFAl_50": 802634429
+      "Inventario Ba\xFAl_51": -997450858
+      "Inventario Ba\xFAl_52": 604983747
+      "Inventario Ba\xFAl_53": 1373787796
+      "Inventario Ba\xFAl_54": -784025078
+      "Inventario Ba\xFAl_55": -915877151
+      "Inventario Ba\xFAl_56": -1496753458
+      "Inventario Ba\xFAl_57": 1969847719
+      "Inventario Ba\xFAl_58": 1482630138
+      "Inventario Ba\xFAl_59": -1604947732
+      "Inventario Ba\xFAl_6": -594687874
+      "Inventario Ba\xFAl_60": -59512188
+      "Inventario Ba\xFAl_61": -1940384939
+      "Inventario Ba\xFAl_62": 1623169417
+      "Inventario Ba\xFAl_7": 342086665
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

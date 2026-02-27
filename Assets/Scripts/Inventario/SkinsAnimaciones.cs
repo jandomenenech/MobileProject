@@ -1,10 +1,9 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class SkinsAnimaciones : MonoBehaviour
 {
     [Tooltip("Animator del jugador principal al que se sincroniza")]
     public Animator player;
-    [SerializeField] private AtaqueyInteraccion ataque;
     private Animator animator;
 
     void Awake()
@@ -35,23 +34,15 @@ public class SkinsAnimaciones : MonoBehaviour
         animator.SetFloat("Horizontal", player.GetFloat("Horizontal"));
         animator.SetFloat("Vertical", player.GetFloat("Vertical"));
         animator.SetBool("IsMoving", player.GetBool("IsMoving"));
-
-        // Actualizar cooldown de ataque
-        if (ataque.timeNextAttack > 0)
-        {
-            ataque.timeNextAttack -= Time.deltaTime;
-        }
-
-        // Si presiona espacio y puede atacar
-        if (Input.GetKeyDown(KeyCode.Space) && ataque.timeNextAttack <= 0)
-        {
-            animator.SetTrigger("Atacar");
-            player.SetTrigger("Atacar");
-            ataque.timeNextAttack = ataque.timeIdle;
-        }
-
     }
 
-    
-
+    /// <summary>
+    /// Dispara el trigger de ataque en este Animator, sincronizado con el del jugador.
+    /// Llamado desde AtaqueyInteraccion cuando el jugador ataca.
+    /// </summary>
+    public void TriggerAtacar()
+    {
+        if (animator == null) return;
+        animator.SetTrigger("Atacar");
+    }
 }

@@ -1,0 +1,657 @@
+fileFormatVersion: 2
+guid: 485196e3d8a176741b2c02c9c3a227b3
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 6996492222815415416
+    second: Inventario_0
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 13
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Inventario Slot 1
+      rect:
+        serializedVersion: 2
+        x: 26
+        y: 98
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f48c46104ac08554e8873744996551c5
+      internalID: 1478593384
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Inventario Slot 2
+      rect:
+        serializedVersion: 2
+        x: 39
+        y: 98
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ceb0ca728de388a4686e32291a7fe53e
+      internalID: 1148910987
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Inventario Slot 3
+      rect:
+        serializedVersion: 2
+        x: 52
+        y: 98
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e15341bbd29016f4c864c8d1a808a7e8
+      internalID: -1122522803
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Inventario Slot 4
+      rect:
+        serializedVersion: 2
+        x: 65
+        y: 98
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6a3286a5a04bd7247ba96bbc3de54abf
+      internalID: -594539756
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Inventario Slot 5
+      rect:
+        serializedVersion: 2
+        x: 78
+        y: 98
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 06a4109c2cbeb2d4cbae42512727b801
+      internalID: -977766852
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Inventario Slot 6
+      rect:
+        serializedVersion: 2
+        x: 26
+        y: 85
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c40438f70f5b5764c94d0c262461e0c3
+      internalID: -545694110
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Inventario Slot 7
+      rect:
+        serializedVersion: 2
+        x: 39
+        y: 85
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7aee2eac9e63ff948ad3d2c962c624d8
+      internalID: 70200956
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Inventario Slot 8
+      rect:
+        serializedVersion: 2
+        x: 52
+        y: 85
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e5c558bad79a85848b7fcb65297dc704
+      internalID: 456478601
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Inventario Slot 9
+      rect:
+        serializedVersion: 2
+        x: 65
+        y: 85
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a4c7cab4979c1ae43aaf51aded504b07
+      internalID: -571152014
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Inventario Slot 10
+      rect:
+        serializedVersion: 2
+        x: 78
+        y: 85
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1b3ee85f385297544b5d392443c7f0f3
+      internalID: -7224546
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Inventario Slot 11
+      rect:
+        serializedVersion: 2
+        x: 26
+        y: 72
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a731166bdc893f747aed453b252f45c5
+      internalID: 1741324182
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Inventario Slot 12
+      rect:
+        serializedVersion: 2
+        x: 39
+        y: 72
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 72c8c7268afb5f848b48c2f6971bf530
+      internalID: -940139846
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Inventario Slot 13
+      rect:
+        serializedVersion: 2
+        x: 52
+        y: 72
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b34d40fb6fcc9fd4797c7a295e01d7c1
+      internalID: -870208865
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Inventario Slot 14
+      rect:
+        serializedVersion: 2
+        x: 65
+        y: 72
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 97e610f1ad19bcf4b8264ad652042b92
+      internalID: 1207183421
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Inventario Slot 15
+      rect:
+        serializedVersion: 2
+        x: 78
+        y: 72
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: aa8f67441988efe4e8bac3ede0156790
+      internalID: 1986845515
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Inventario Slot Mochila
+      rect:
+        serializedVersion: 2
+        x: 26
+        y: 53
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2e69740c1d9d4964682edfb742e7118a
+      internalID: 340758577
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Inventario Slot Amuleto
+      rect:
+        serializedVersion: 2
+        x: 39
+        y: 53
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7fc1274b61becc34bb842b68b11278c5
+      internalID: 559700801
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Inventario Slot Casco
+      rect:
+        serializedVersion: 2
+        x: 65
+        y: 53
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 34268cc14975da7499e94e01019b8fff
+      internalID: -844108698
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Inventario Slot Armadura
+      rect:
+        serializedVersion: 2
+        x: 78
+        y: 53
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fb7bafa574d74024690f8c4c40d011ce
+      internalID: 1377073358
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Inventario Slot Guantes
+      rect:
+        serializedVersion: 2
+        x: 26
+        y: 40
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 656595024401a3c49a64144be3357522
+      internalID: -2031994623
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Inventario Slot Anillo
+      rect:
+        serializedVersion: 2
+        x: 39
+        y: 40
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fac912011bc2e874fa6e0efabfbf2c7b
+      internalID: -560554438
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Inventario Slot Botas
+      rect:
+        serializedVersion: 2
+        x: 65
+        y: 40
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bb8e3e91da5dfec4ba40a84f97098436
+      internalID: -796845196
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Inventario Slot Pantalon
+      rect:
+        serializedVersion: 2
+        x: 78
+        y: 40
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7e76d387a837ab54d90a7b1c2f43719d
+      internalID: -1247186030
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 3218d34d6918ac7448b09f5729c7a941
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      Inventario Slot 1: 1478593384
+      Inventario Slot 10: -7224546
+      Inventario Slot 11: 1741324182
+      Inventario Slot 12: -940139846
+      Inventario Slot 13: -870208865
+      Inventario Slot 14: 1207183421
+      Inventario Slot 15: 1986845515
+      Inventario Slot 2: 1148910987
+      Inventario Slot 3: -1122522803
+      Inventario Slot 4: -594539756
+      Inventario Slot 5: -977766852
+      Inventario Slot 6: -545694110
+      Inventario Slot 7: 70200956
+      Inventario Slot 8: 456478601
+      Inventario Slot 9: -571152014
+      Inventario Slot Amuleto: 559700801
+      Inventario Slot Anillo: -560554438
+      Inventario Slot Armadura: 1377073358
+      Inventario Slot Botas: -796845196
+      Inventario Slot Casco: -844108698
+      Inventario Slot Guantes: -2031994623
+      Inventario Slot Mochila: 340758577
+      Inventario Slot Pantalon: -1247186030
+      Inventario_0: 6996492222815415416
+      Inventario_1: -129882657
+      Inventario_13: -2139048327
+      Inventario_14: 1176698646
+      Inventario_2: -2034476520
+      Inventario_20: 811949591
+      Inventario_21: -279936695
+      Inventario_27: 2035908860
+      Inventario_28: 1079883537
+      Inventario_3: 2061350209
+      Inventario_31: -1746227292
+      Inventario_34: 1846285985
+      Inventario_35: 2024257523
+      Inventario_38: 559491326
+      Inventario_4: -1972811678
+      Inventario_41: 1078761202
+      Inventario_42: -1090106267
+      Inventario_43: 1666868054
+      Inventario_44: -346049300
+      Inventario_45: -1588305755
+      Inventario_46: 1725737610
+      Inventario_47: -44888718
+      Inventario_48: 1692986986
+      Inventario_49: 560728941
+      Inventario_5: -1069785212
+      Inventario_50: -815189257
+      Inventario_51: -98576058
+      Inventario_52: -488049091
+      Inventario_53: -665522965
+      Inventario_54: -1790081817
+      Inventario_55: 271333959
+      Inventario_56: -1082083648
+      Inventario_6: -946017816
+      Inventario_7: 1611918306
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -17,8 +17,8 @@ TagManager:
   - 
   - 
   - 
-  - 
-  - 
+  - MapCollider1
+  - MapCollider2
   - 
   - 
   - 
@@ -55,6 +55,15 @@ TagManager:
   - name: Map Jugable 2
     uniqueID: 2225882609
     locked: 0
+  - name: Objetos Suelo
+    uniqueID: 3450525383
+    locked: 0
   - name: Player
     uniqueID: 154943973
+    locked: 0
+  - name: Hierba
+    uniqueID: 2110252991
+    locked: 0
+  - name: UI
+    uniqueID: 888888801
     locked: 0
