@@ -98,6 +98,13 @@ public class MovimientoPorCeldas : MonoBehaviour
     private bool _attackQueued;
     private Transform _manoOTool;
 
+    // Hashes de estados de ataque del BaseAnimator (Base Layer) para detectar cuándo la animación ha terminado
+    private static readonly int HashAtacarAP = Animator.StringToHash("Base Layer.Atacar AP");
+    private static readonly int HashAtacarPA = Animator.StringToHash("Base Layer.Atacar PA");
+    private static readonly int HashAtacarPerfilL = Animator.StringToHash("Base Layer.Atacar Perfil L");
+    private static readonly int HashAtacarPerfilR = Animator.StringToHash("Base Layer.Atacar Perfil R");
+    private const float AtaqueTimeoutSeguridad = 2f;
+
     void Start()
     {
         animator = GetComponent<Animator>();
@@ -349,6 +356,21 @@ public class MovimientoPorCeldas : MonoBehaviour
                 }
     }
 
+    static bool EsHashAtaque(int hash)
+    {
+        return hash == HashAtacarAP || hash == HashAtacarPA
+            || hash == HashAtacarPerfilL || hash == HashAtacarPerfilR;
+    }
+
+    /// <summary>True si el Animator está en un estado de ataque o en transición hacia/desde uno.</summary>
+    static bool EstaEnEstadoAtaque(Animator a)
+    {
+        if (a == null || !a.enabled || a.layerCount == 0) return false;
+        if (EsHashAtaque(a.GetCurrentAnimatorStateInfo(0).fullPathHash)) return true;
+        if (a.IsInTransition(0) && EsHashAtaque(a.GetNextAnimatorStateInfo(0).fullPathHash)) return true;
+        return false;
+    }
+
     void ProcesarEntradaAtaque()
     {
         // Si ya estamos atacando o hay un ataque en cola, ignoramos nuevas pulsaciones
@@ -411,8 +433,13 @@ public class MovimientoPorCeldas : MonoBehaviour
     // --- Orientacion: al estar parado usamos sprite por codigo; al andar el Animator controla el sprite ---
     void ActualizarOrientacionYGizmo()
     {
-        if (_attackingParado && Time.time >= _attackEndTime)
-            _attackingParado = false;
+        if (_attackingParado && animator != null)
+        {
+            bool pasadoGracia = Time.time >= _attackEndTime;
+            bool timeout = Time.time >= _attackEndTime + AtaqueTimeoutSeguridad;
+            if (timeout || (pasadoGracia && !EstaEnEstadoAtaque(animator)))
+                _attackingParado = false;
+        }
 
         bool atacandoParado = !isMoving && _attackingParado;
 
