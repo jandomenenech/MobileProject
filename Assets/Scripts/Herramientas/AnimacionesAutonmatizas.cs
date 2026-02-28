@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEditor;
 using UnityEditor.Animations;
 using System.Collections.Generic;
@@ -137,7 +137,100 @@ public class AnimacionesAutomatizadas : MonoBehaviour
         string savePath = Path.Combine(animFolderPath, nombreAnim + ".anim");
         AssetDatabase.CreateAsset(clip, savePath);
         AssetDatabase.SaveAssets();
-        Debug.Log("✅ Animación guardada en: " + savePath);
+        Debug.Log("Animacion guardada en: " + savePath);
+    }
+
+    [MenuItem("Tools/Configurar Override Controller Arma")]
+    public static void ConfigurarOverrideControllerArma()
+    {
+        string overridePath = EditorUtility.OpenFilePanel(
+            "Selecciona el AnimatorOverrideController del arma",
+            "Assets", "overrideController");
+
+        if (string.IsNullOrEmpty(overridePath)) return;
+
+        overridePath = "Assets" + overridePath.Substring(Application.dataPath.Length);
+        var overrideCtrl = AssetDatabase.LoadAssetAtPath<AnimatorOverrideController>(overridePath);
+        if (overrideCtrl == null)
+        {
+            Debug.LogError("No se pudo cargar el AnimatorOverrideController en: " + overridePath);
+            return;
+        }
+
+        AnimatorController baseCtrl = overrideCtrl.runtimeAnimatorController as AnimatorController;
+        if (baseCtrl == null)
+        {
+            Debug.LogError("El Override Controller no tiene un AnimatorController base asignado.");
+            return;
+        }
+
+        string attackFolder = EditorUtility.OpenFolderPanel(
+            "Selecciona la carpeta con los .anim de ataque (Atacar AP, Atacar PA, etc.)",
+            "Assets", "");
+
+        if (string.IsNullOrEmpty(attackFolder)) return;
+
+        attackFolder = "Assets" + attackFolder.Substring(Application.dataPath.Length);
+
+        string[] attackNames = { "Atacar AP", "Atacar PA", "Atacar Perfil L", "Atacar Perfil R" };
+        Dictionary<string, AnimationClip> attackClips = new Dictionary<string, AnimationClip>();
+
+        foreach (string name in attackNames)
+        {
+            string path = attackFolder + "/" + name + ".anim";
+            AnimationClip clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(path);
+            if (clip != null)
+            {
+                attackClips[name] = clip;
+                Debug.Log("Clip de ataque encontrado: " + name + " -> " + path);
+            }
+            else
+            {
+                Debug.LogWarning("No se encontro clip de ataque: " + path);
+            }
+        }
+
+        if (attackClips.Count == 0)
+        {
+            Debug.LogError("No se encontraron clips de ataque en: " + attackFolder);
+            return;
+        }
+
+        var overrides = new List<KeyValuePair<AnimationClip, AnimationClip>>();
+        overrideCtrl.GetOverrides(overrides);
+
+        foreach (var state in baseCtrl.layers[0].stateMachine.states)
+        {
+            AnimationClip originalClip = state.state.motion as AnimationClip;
+            if (originalClip == null) continue;
+
+            foreach (var kvp in attackClips)
+            {
+                if (state.state.name == kvp.Key)
+                {
+                    bool alreadyOverridden = false;
+                    for (int i = 0; i < overrides.Count; i++)
+                    {
+                        if (overrides[i].Key == originalClip)
+                        {
+                            overrides[i] = new KeyValuePair<AnimationClip, AnimationClip>(originalClip, kvp.Value);
+                            alreadyOverridden = true;
+                            break;
+                        }
+                    }
+                    if (!alreadyOverridden)
+                        overrides.Add(new KeyValuePair<AnimationClip, AnimationClip>(originalClip, kvp.Value));
+
+                    Debug.Log("Override mapeado: " + state.state.name + " -> " + kvp.Value.name);
+                    break;
+                }
+            }
+        }
+
+        overrideCtrl.ApplyOverrides(overrides);
+        EditorUtility.SetDirty(overrideCtrl);
+        AssetDatabase.SaveAssets();
+        Debug.Log("Override Controller actualizado con " + attackClips.Count + " clips de ataque.");
     }
 }
 

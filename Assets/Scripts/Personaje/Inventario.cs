@@ -13,25 +13,15 @@ public class Inventario : MonoBehaviour
     public Arbusto arbusto;
 
 
-    [Header("Hacha")]
-    public GameObject hachaPrefab;
+    [Header("Arma equipada")]
+    [Tooltip("Transform donde se instancia el arma (hijo 'mano' o 'tool').")]
     public Transform mano;
-    [Tooltip("Distancia del hacha respecto al cuerpo en la direccion en que mira (ej. 0.5).")]
-    [SerializeField] private float offsetHachaDireccion = 0.5f;
-    private GameObject hacha;
+    private GameObject armaInstancia;
+    private DatosArma armaEquipadaDatos;
 
-    // true si el personaje tiene el hacha equipada (para que otros scripts,
-    // como el de movimiento, puedan saberlo y mostrar/ocultar la hacha visual).
-    [HideInInspector] public bool tieneHachaEquipada = false;
+    [HideInInspector] public bool tieneArmaEquipada = false;
 
-    /// <summary>
-    /// true si el personaje tiene cualquier arma equipada (hacha, espada, etc.).
-    /// Punto unico de consulta para el sistema de ataque.
-    /// </summary>
-    public bool TieneArmaEquipada
-    {
-        get { return tieneHachaEquipada; }
-    }
+    public bool TieneArmaEquipada => tieneArmaEquipada;
 
     [Header("Armadura")]
     [Tooltip("Objeto en el slot de armadura (null si no hay ninguna).")]
@@ -55,8 +45,7 @@ public class Inventario : MonoBehaviour
         {
             inventario.Add(null);
         }
-        // Asegurar que al empezar la partida no haya hacha equipada
-        DesequiparHacha();
+        DesequiparArma();
         DesequiparArmadura();
     }
 
@@ -66,8 +55,14 @@ public class Inventario : MonoBehaviour
         activarInventario();
         TryAccionConF();
         ProcesarTeclasAccesoRapido();
-        if (tieneHachaEquipada && hacha != null)
-            ActualizarPosicionYDireccionHacha();
+        if (tieneArmaEquipada && armaInstancia != null)
+            ActualizarArmaEquipada();
+    }
+
+    void LateUpdate()
+    {
+        if (armaInstancia != null)
+            armaInstancia.transform.localPosition = Vector3.zero;
     }
 
     public void obtenerObjeto() {
@@ -131,8 +126,8 @@ public class Inventario : MonoBehaviour
         GameObject obj = inventario[slotIndex];
         if (obj == null) return;
 
-        if (ObjetoRecogible.EsArma(obj) && tieneHachaEquipada)
-            DesequiparHacha();
+        if (ObjetoRecogible.EsArma(obj) && tieneArmaEquipada)
+            DesequiparArma();
 
         var movimiento = GetComponent<MovimientoPorCeldas>();
         Vector2 posCelda = movimiento != null ? movimiento.GetPosicionCeldaActual() : (Vector2)transform.position;
@@ -271,8 +266,8 @@ public class Inventario : MonoBehaviour
         GameObject itemJugador = inventario[slotJugador];
         if (itemJugador == null) return;
 
-        if (ObjetoRecogible.EsArma(itemJugador) && tieneHachaEquipada)
-            DesequiparHacha();
+        if (ObjetoRecogible.EsArma(itemJugador) && tieneArmaEquipada)
+            DesequiparArma();
         if (slotArmadura == itemJugador)
         {
             DesequiparArmadura();
@@ -406,53 +401,73 @@ public class Inventario : MonoBehaviour
 
         if (recogible.categoria == CategoriaObjeto.Arma)
         {
-            if (!tieneHachaEquipada)
+            if (!tieneArmaEquipada)
             {
+                DatosArma datos = recogible.datosArma;
+                if (datos == null || datos.prefabVisual == null)
+                {
+                    Debug.LogWarning($"Acceso rapido {index + 1}: el arma '{item.name}' no tiene DatosArma o prefabVisual asignado.");
+                    return;
+                }
                 Debug.Log($"Acceso rapido {index + 1}: equipar arma desde el slot {index + 1}.");
-                EquiparHacha();
+                EquiparArma(datos);
             }
             else
             {
                 Debug.Log($"Acceso rapido {index + 1}: desequipar arma.");
-                DesequiparHacha();
+                DesequiparArma();
             }
         }
     }
 
-    public void EquiparHacha()
+    public void EquiparArma(DatosArma datos)
     {
+        if (datos == null || datos.prefabVisual == null)
+        {
+            Debug.LogWarning("Inventario: DatosArma o prefabVisual es null. No se puede equipar.");
+            return;
+        }
+
         Transform puntoEquipo = mano != null ? mano : BuscarManoOTool();
         if (puntoEquipo == null)
         {
             Debug.LogWarning("Inventario: no hay transform 'mano' asignado ni hijo 'mano'/'tool'. Asigna 'mano' en el Inspector.");
             return;
         }
-        if (hachaPrefab == null)
-        {
-            Debug.LogWarning("Inventario: no hay hachaPrefab asignado. Asigna el prefab del hacha en el Inspector.");
-            return;
-        }
+
+        DesequiparArma();
 
         puntoEquipo.gameObject.SetActive(true);
+        Transform p = puntoEquipo.transform.parent;
+        while (p != null && p != transform)
+        {
+            if (!p.gameObject.activeSelf)
+                p.gameObject.SetActive(true);
+            p = p.parent;
+        }
 
-        // Desactivar el SpriteRenderer del propio "tool"/"mano" (suele estar vac�o) para que no tape el hacha
         var srMano = puntoEquipo.GetComponent<SpriteRenderer>();
         if (srMano != null)
             srMano.enabled = false;
 
-        foreach (Transform child in puntoEquipo)
+        armaInstancia = Instantiate(datos.prefabVisual, puntoEquipo.position, puntoEquipo.rotation);
+        armaInstancia.transform.SetParent(puntoEquipo);
+        armaInstancia.transform.localPosition = Vector3.zero;
+        armaInstancia.transform.localRotation = Quaternion.identity;
+        armaInstancia.transform.localScale = Vector3.one;
+        armaInstancia.SetActive(true);
+        armaEquipadaDatos = datos;
+
+        foreach (var skin in armaInstancia.GetComponentsInChildren<SkinsAnimaciones>(true))
+            Destroy(skin);
+
+        foreach (var a in armaInstancia.GetComponentsInChildren<Animator>(true))
         {
-            Destroy(child.gameObject);
+            if (a == null) continue;
+            a.keepAnimatorStateOnDisable = true;
+            a.enabled = true;
         }
 
-        hacha = Instantiate(hachaPrefab, puntoEquipo.position, puntoEquipo.rotation);
-        hacha.transform.SetParent(puntoEquipo);
-        hacha.transform.localPosition = Vector3.zero;
-        hacha.transform.localRotation = Quaternion.identity;
-        hacha.transform.localScale = Vector3.one;
-        hacha.SetActive(true);
-
-        // SpriteRenderer del cuerpo (no el de "tool") para copiar capa y orden y que el hacha se dibuje encima
         SpriteRenderer srCuerpo = null;
         var bodyT = transform.Find("body");
         if (bodyT != null) srCuerpo = bodyT.GetComponent<SpriteRenderer>();
@@ -467,36 +482,43 @@ public class Inventario : MonoBehaviour
             }
         }
 
-        foreach (var sr in hacha.GetComponentsInChildren<SpriteRenderer>(true))
+        foreach (var sr in armaInstancia.GetComponentsInChildren<SpriteRenderer>(true))
         {
-            if (sr != null)
+            if (sr == null) continue;
+            sr.gameObject.SetActive(true);
+            sr.enabled = true;
+            if (srCuerpo != null)
             {
-                sr.gameObject.SetActive(true);
-                sr.enabled = true;
-                if (srCuerpo != null)
-                {
-                    sr.sortingLayerID = srCuerpo.sortingLayerID;
-                    sr.sortingOrder = srCuerpo.sortingOrder + 5; // Por encima del cuerpo para que se vea
-                }
-                else
-                {
-                    try { sr.sortingLayerName = "Player"; } catch { }
-                    sr.sortingOrder = 1;
-                }
+                sr.sortingLayerID = srCuerpo.sortingLayerID;
+                sr.sortingOrder = srCuerpo.sortingOrder + 5;
+            }
+            else
+            {
+                try { sr.sortingLayerName = "Player"; } catch { }
+                sr.sortingOrder = 1;
             }
         }
 
-        tieneHachaEquipada = true;
-        ActualizarPosicionYDireccionHacha();
+        tieneArmaEquipada = true;
+
+        var move = GetComponent<MovimientoPorCeldas>();
+        if (move != null)
+        {
+            move.RefrescarAnimatorsHijos();
+            move.ForzarEstadoArmaParado();
+        }
+
+        ActualizarArmaEquipada();
     }
 
-    public void DesequiparHacha()
+    public void DesequiparArma()
     {
-        if (hacha != null)
+        if (armaInstancia != null)
         {
-            Destroy(hacha);
-            hacha = null;
+            Destroy(armaInstancia);
+            armaInstancia = null;
         }
+        armaEquipadaDatos = null;
 
         Transform puntoEquipo = mano ?? (transform.Find("legs/tool") ?? BuscarManoOTool());
         if (puntoEquipo != null)
@@ -507,36 +529,21 @@ public class Inventario : MonoBehaviour
             if (srMano != null) srMano.enabled = true;
         }
 
-        tieneHachaEquipada = false;
+        tieneArmaEquipada = false;
+
+        var move = GetComponent<MovimientoPorCeldas>();
+        if (move != null) move.RefrescarAnimatorsHijos();
     }
 
-    void ActualizarPosicionYDireccionHacha()
+    void ActualizarArmaEquipada()
     {
-        var move = GetComponent<MovimientoPorCeldas>();
-        if (move == null || hacha == null) return;
-
-        Vector2 dir = move.GetLastInputDirection();
-        if (dir.sqrMagnitude < 0.01f) dir = Vector2.down;
-        float h = dir.x;
-        float v = dir.y;
-        bool isMoving = move.IsMoving;
+        if (armaInstancia == null) return;
 
         Transform puntoEquipo = mano != null ? mano : BuscarManoOTool();
         if (puntoEquipo != null)
             puntoEquipo.localPosition = Vector3.zero;
 
-        foreach (var a in hacha.GetComponentsInChildren<Animator>(true))
-        {
-            if (a == null) continue;
-            a.SetFloat("Horizontal", h);
-            a.SetFloat("Vertical", v);
-            a.SetBool("IsMoving", isMoving);
-            // Importante: solo activamos el Animator cuando se mueve.
-            // No lo desactivamos cuando está parado para no cortar la animación de ataque parado
-            // que lanza MovimientoPorCeldas.
-            if (isMoving && !a.enabled)
-                a.enabled = true;
-        }
+        armaInstancia.transform.localPosition = Vector3.zero;
     }
 
     Transform BuscarManoOTool()

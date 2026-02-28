@@ -1,0 +1,36 @@
+---
+description: Sistema generico de armas equipables - flujo para anadir nuevas armas/herramientas
+alwaysApply: true
+---
+
+# Sistema de armas equipables
+
+## Arquitectura
+
+- Cada arma se define con un ScriptableObject `DatosArma` (menu: Juego > Datos Arma)
+- `DatosArma` contiene: prefab visual, sprite prefix, resource paths
+- El prefab visual tiene SpriteRenderer + Animator con un AnimatorOverrideController
+- El Override Controller mapea los 12 clips (4 caminar + 4 estatico + 4 ataque)
+- `ObjetoRecogible` con categoria Arma tiene una ref a `DatosArma`
+- `Inventario.EquiparArma(DatosArma)` instancia el prefab como hijo de `mano/tool`
+- El Animator del arma se mantiene SIEMPRE activo (no desactivar manualmente)
+- `MovimientoPorCeldas` sincroniza parametros (Horizontal, Vertical, IsMoving, Atacar) en todos los animators hijos
+
+## Flujo para anadir una nueva arma
+
+1. Crear sprites en `Assets/Resources/Sprites/<NombreArma>/` con la convencion:
+   - Caminar: `<Nombre> <Dir> <Frame> Caminar.png` (Dir: AP/PA/Perfil L/Perfil R, Frame: 0-3)
+   - Ataque: `<Nombre> <Dir> <Frame> Atacar.png`
+2. En Unity: `Tools > Crear Animaciones por Direccion` (genera .anim para caminar y estatico)
+3. En Unity: `Tools > Configurar Override Controller Arma` (crea/configura el override con los 12 clips)
+4. Crear prefab visual con SpriteRenderer + Animator (asignar el override controller)
+5. Crear asset DatosArma: click derecho > Create > Juego > Datos Arma, rellenar campos
+6. Crear prefab recogible con ObjetoRecogible (categoria=Arma) + asignar DatosArma
+7. NO se necesitan cambios de codigo
+
+## Archivos clave
+
+- `Assets/Scripts/Herramientas/DatosArma.cs` - ScriptableObject de datos del arma
+- `Assets/Scripts/Personaje/Inventario.cs` - EquiparArma() / DesequiparArma()
+- `Assets/Scripts/Personaje/MovimientoPorCeldas.cs` - Sincronizacion de animators y RefrescarAnimatorsHijos()
+- `Assets/Scripts/Herramientas/AnimacionesAutonmatizas.cs` - Herramientas de automatizacion (MenuItems en Tools)

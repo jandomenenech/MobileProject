@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 3847906185606882507}
   - component: {fileID: 1614757781101368998}
   - component: {fileID: 373227843041280748}
-  - component: {fileID: -8815929660370347702}
   m_Layer: 0
   m_Name: Hacha 1 AP 0 Caminar
   m_TagString: Untagged
@@ -124,15 +123,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 5950398691137840738, guid: cd70603cd15700143a382b233de8a27e, type: 3}
---- !u!114 &-8815929660370347702
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5986366631160828359}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 63303917d53a688469a5de1b9959562b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  ataque: {fileID: 0}

@@ -17,6 +17,10 @@ public class ObjetoRecogible : MonoBehaviour
     [Header("Clasificacion")]
     public CategoriaObjeto categoria = CategoriaObjeto.Ninguno;
 
+    [Header("Datos del arma (solo si categoria = Arma)")]
+    [Tooltip("Asigna un asset DatosArma para que el sistema de equipamiento sepa que prefab visual instanciar.")]
+    public DatosArma datosArma;
+
     public bool esRecogido = false;
     public GameObject player;
     public Texture textura;
@@ -33,6 +37,13 @@ public class ObjetoRecogible : MonoBehaviour
         if (obj == null) return false;
         var rec = obj.GetComponent<ObjetoRecogible>();
         return rec != null && rec.categoria == CategoriaObjeto.Armadura;
+    }
+
+    public static DatosArma ObtenerDatosArma(GameObject obj)
+    {
+        if (obj == null) return null;
+        var rec = obj.GetComponent<ObjetoRecogible>();
+        return rec != null ? rec.datosArma : null;
     }
 
     void Start()

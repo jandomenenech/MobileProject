@@ -150,3 +150,4 @@ MonoBehaviour:
   esRecogido: 0
   player: {fileID: 0}
   textura: {fileID: 2800000, guid: 6844d428fa8d9e846acb308ff6b59ecf, type: 3}
+  datosArma: {fileID: 11400000, guid: 4ada40b3f63d265489f62afcf3807d7a, type: 2}

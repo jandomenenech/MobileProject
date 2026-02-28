@@ -68,24 +68,12 @@ public class MovimientoPorCeldas : MonoBehaviour
     [Tooltip("Ruta en Resources donde estan los sprites del peinado (sin nombre del sprite).")]
     [SerializeField] private string hairResourcesPath = "Sprites/Peinado/Marron/Sprites/";
 
-    [Header("Hacha / arma (sincronizada)")]
-    [Tooltip("SpriteRenderer del hacha. Si esta vacio, se buscara por nombre (tool/hacha).")]
-    [SerializeField] private SpriteRenderer axeSpriteRenderer;
-    [Tooltip("Prefijo del nombre de sprite del hacha (ej: Hacha 1).")]
-    [SerializeField] private string axeSpritePrefix = "Hacha 1";
-    [Tooltip("Ruta en Resources donde estan los sprites del hacha (sin nombre del sprite).")]
-    [SerializeField] private string axeResourcesPath = "Sprites/Hacha/Hacha1/Sprites/";
-    [Tooltip("Ruta en Resources para sprites de ataque del hacha (ej: Hacha 1 AP 5 Atacar).")]
-    [SerializeField] private string axeAttackResourcesPath = "Sprites/Hacha/Atacar/";
-
     [Header("Armadura (sincronizada con direccion)")]
     [SerializeField] private string armorSpritePrefix = "Armadura 2";
     [SerializeField] private string armorResourcesPath = "Sprites/Armors/Armor2/Sprites/";
 
     private SpriteRenderer _bodySpriteForSync;
     private Dictionary<string, Sprite> _hairSpriteCache = new Dictionary<string, Sprite>();
-    private Dictionary<string, Sprite> _axeSpriteCache = new Dictionary<string, Sprite>();
-    private Dictionary<string, Sprite> _axeAttackSpriteCache = new Dictionary<string, Sprite>();
     private Dictionary<string, Sprite> _armorSpriteCache = new Dictionary<string, Sprite>();
 
     [Header("Ataque parado (solo Espacio)")]
@@ -257,8 +245,6 @@ public class MovimientoPorCeldas : MonoBehaviour
 
     void LateUpdate()
     {
-        if (!isMoving && !_attackingParado && inventario != null && inventario.tieneHachaEquipada && _manoOTool != null)
-            ActualizarHachaEstatica(lastInputDirection);
     }
 
     /// <summary>
@@ -407,19 +393,9 @@ public class MovimientoPorCeldas : MonoBehaviour
         // Fijamos los par�metros de direcci�n usando la �ltima direcci�n conocida
         AplicarParametrosAnimator(lastInputDirection.x, lastInputDirection.y, false);
 
-        // Activar todos los animadores (cuerpo + hacha + pelo) y lanzar Atacar en todos
         if (animatorsHijos != null)
         {
             foreach (var a in animatorsHijos)
-            {
-                if (a == null) continue;
-                a.enabled = true;
-                a.SetTrigger("Atacar");
-            }
-        }
-        if (_manoOTool != null)
-        {
-            foreach (var a in _manoOTool.GetComponentsInChildren<Animator>(true))
             {
                 if (a == null) continue;
                 a.enabled = true;
@@ -462,9 +438,6 @@ public class MovimientoPorCeldas : MonoBehaviour
                         a.SetTrigger("Atacar");
                     }
                 }
-                if (_manoOTool != null)
-                    foreach (var a in _manoOTool.GetComponentsInChildren<Animator>(true))
-                        if (a != null) { a.enabled = true; a.SetTrigger("Atacar"); }
                 _attackingParado = true;
                 _attackEndTime = Time.time + duracionAtaqueParado;
                 ataque.detectarAtaque();
@@ -475,7 +448,6 @@ public class MovimientoPorCeldas : MonoBehaviour
         {
             if (atacandoParado)
             {
-                // Durante el ataque parado dejamos todos los animadores activos para que cuerpo y hacha animen
                 foreach (var a in animatorsHijos)
                     if (a != null) a.enabled = true;
             }
@@ -484,7 +456,19 @@ public class MovimientoPorCeldas : MonoBehaviour
                 foreach (var a in animatorsHijos)
                 {
                     if (a == null) continue;
-                    if (_manoOTool != null && a.transform.IsChildOf(_manoOTool)) continue;
+                    bool esArma = _manoOTool != null && a.transform.IsChildOf(_manoOTool);
+                    if (esArma)
+                    {
+                        a.enabled = true;
+                        if (!isMoving && !_attackingParado)
+                        {
+                            string estado = NombreEstadoEstatico(lastInputDirection);
+                            AnimatorStateInfo info = a.GetCurrentAnimatorStateInfo(0);
+                            if (!info.IsName(estado))
+                                a.Play(estado, 0, 0f);
+                        }
+                        continue;
+                    }
                     a.enabled = isMoving;
                 }
             }
@@ -501,8 +485,6 @@ public class MovimientoPorCeldas : MonoBehaviour
                 if (_bodySpriteForSync != null) { _bodySpriteForSync.enabled = true; _bodySpriteForSync.flipX = false; _bodySpriteForSync.sprite = s; }
                 ActualizarPeinadoEstatico(lastInputDirection);
                 ActualizarArmaduraEstatica(lastInputDirection);
-                if (inventario != null && inventario.tieneHachaEquipada)
-                    ActualizarHachaEstatica(lastInputDirection);
                 if (!_loggedStaticSpriteOnce) { _loggedStaticSpriteOnce = true; Debug.Log("MovimientoPorCeldas: sprite estatico aplicado (parado)."); }
             }
         }
@@ -517,8 +499,6 @@ public class MovimientoPorCeldas : MonoBehaviour
                     Sprite hairSprite = CargarSpritePeinado(hairSpritePrefix + suffix);
                     if (hairSprite != null) { hairSpriteRenderer.flipX = false; hairSpriteRenderer.sprite = hairSprite; }
                 }
-                // Hacha: dejamos que la gestione el sistema de inventario (hacha prefab en la mano / Animator propio).
-                // No forzamos sprites aqu? para no interferir con la l?gica de equipar/desequipar.
                 if (inventario != null && inventario.slotArmadura != null)
                 {
                     Sprite armorSprite = CargarSpriteArmadura(armorSpritePrefix + suffix);
@@ -646,24 +626,33 @@ public class MovimientoPorCeldas : MonoBehaviour
         return s;
     }
 
-    Sprite CargarSpriteHacha(string spriteName)
+    /// <summary>
+    /// Recalcula la lista de Animators hijos. Llamar despues de instanciar o destruir un arma equipada.
+    /// </summary>
+    public void RefrescarAnimatorsHijos()
     {
-        if (string.IsNullOrEmpty(spriteName)) return null;
-        if (_axeSpriteCache.TryGetValue(spriteName, out Sprite cached)) return cached;
-        string path = (string.IsNullOrEmpty(axeResourcesPath) ? "" : axeResourcesPath.TrimEnd('/') + "/") + spriteName;
-        Sprite s = Resources.Load<Sprite>(path);
-        if (s != null) _axeSpriteCache[spriteName] = s;
-        return s;
+        animatorsHijos = GetComponentsInChildren<Animator>();
+        animator = GetComponent<Animator>();
+        if (animator == null) animator = GetComponentInChildren<Animator>();
     }
 
-    Sprite CargarSpriteHachaAtacar(string spriteName)
+    /// <summary>
+    /// Fuerza el Animator del arma equipada al estado estatico que coincide con la direccion actual.
+    /// Llamar justo despues de equipar un arma para evitar que quede en el estado por defecto.
+    /// </summary>
+    public void ForzarEstadoArmaParado()
     {
-        if (string.IsNullOrEmpty(spriteName)) return null;
-        if (_axeAttackSpriteCache.TryGetValue(spriteName, out Sprite cached)) return cached;
-        string path = (string.IsNullOrEmpty(axeAttackResourcesPath) ? "" : axeAttackResourcesPath.TrimEnd('/') + "/") + spriteName;
-        Sprite s = Resources.Load<Sprite>(path);
-        if (s != null) _axeAttackSpriteCache[spriteName] = s;
-        return s;
+        if (_manoOTool == null || animatorsHijos == null) return;
+        string estado = NombreEstadoEstatico(lastInputDirection);
+        foreach (var a in animatorsHijos)
+        {
+            if (a == null) continue;
+            if (!a.transform.IsChildOf(_manoOTool)) continue;
+            a.SetFloat("Horizontal", lastInputDirection.x);
+            a.SetFloat("Vertical", lastInputDirection.y);
+            a.SetBool("IsMoving", false);
+            a.Play(estado, 0, 0f);
+        }
     }
 
     /// <summary>AP=abajo, PA=arriba, Perfil L=izq, Perfil R=der. Misma logica para cuerpo y accesorios.</summary>
@@ -674,6 +663,13 @@ public class MovimientoPorCeldas : MonoBehaviour
         if (direction.x < 0f) return " Perfil L 0 Caminar"; // izquierda
         if (direction.x > 0f) return " Perfil R 0 Caminar"; // derecha
         return " AP 0 Caminar"; // por defecto abajo
+    }
+
+    static string NombreEstadoEstatico(Vector2 direction)
+    {
+        if (Mathf.Abs(direction.x) > Mathf.Abs(direction.y))
+            return direction.x > 0 ? "Perfil R Estatico" : "Perfil L Estatico";
+        return direction.y > 0 ? "PA Estatico" : "AP Estatico";
     }
 
     Sprite DireccionASpriteCuerpo(Vector2 direction)
@@ -704,68 +700,6 @@ public class MovimientoPorCeldas : MonoBehaviour
             sr.enabled = true;
             sr.flipX = false;
             sr.sprite = hairSprite;
-        }
-    }
-
-    /// <summary>Parado + Control+flecha: pone el hacha con el sprite correcto SOLO si est? equipada.</summary>
-    void ActualizarHachaEstatica(Vector2 direction)
-    {
-        if (inventario != null && !inventario.tieneHachaEquipada)
-        {
-            OcultarHachaVisual();
-            return;
-        }
-
-        string nombreSpriteHacha = NombreSpriteHachaEstatica(direction);
-        Sprite axeSprite = CargarSpriteHacha(nombreSpriteHacha);
-        if (axeSprite == null) return;
-
-        if (_manoOTool != null)
-        {
-            foreach (SpriteRenderer sr in _manoOTool.GetComponentsInChildren<SpriteRenderer>(true))
-            {
-                if (sr == null) continue;
-                if (sr.transform == _manoOTool) continue;
-                var anim = sr.GetComponent<Animator>();
-                if (anim != null) anim.enabled = false;
-                sr.gameObject.SetActive(true);
-                sr.enabled = true;
-                sr.flipX = false;
-                sr.sprite = axeSprite;
-            }
-            return;
-        }
-
-        foreach (SpriteRenderer sr in GetComponentsInChildren<SpriteRenderer>(true))
-        {
-            if (sr == null) continue;
-            string n = sr.gameObject.name.ToLowerInvariant();
-            if (!n.Contains("hacha") && !n.Contains("axe") && !n.Contains("tool")) continue;
-            var anim = sr.GetComponent<Animator>();
-            if (anim != null) anim.enabled = false;
-            sr.gameObject.SetActive(true);
-            sr.enabled = true;
-            sr.flipX = false;
-            sr.sprite = axeSprite;
-        }
-    }
-
-    /// <summary>Oculta todos los SpriteRenderer que representan el hacha visual.</summary>
-    void OcultarHachaVisual()
-    {
-        foreach (SpriteRenderer sr in GetComponentsInChildren<SpriteRenderer>(true))
-        {
-            if (sr == null) continue;
-            string n = sr.gameObject.name.ToLowerInvariant();
-            if (!n.Contains("hacha") && !n.Contains("axe") && !n.Contains("tool")) continue;
-            var anim = sr.GetComponent<Animator>();
-            if (anim != null)
-            {
-                // Si este hacha tiene Animator propio (como el prefab que se instancia en la mano),
-                // no lo tocamos para no ocultar ni romper su animaci?n.
-                continue;
-            }
-            sr.gameObject.SetActive(false);
         }
     }
 
@@ -818,10 +752,4 @@ public class MovimientoPorCeldas : MonoBehaviour
         return hairSpritePrefix + sufijo;
     }
 
-    /// <summary>Nombre exacto del sprite del hacha: Hacha 1 PA/AP/Perfil L/Perfil R 0 Caminar</summary>
-    string NombreSpriteHachaEstatica(Vector2 direction)
-    {
-        string sufijo = DireccionASufijoEstatico(direction);
-        return axeSpritePrefix + sufijo;
-    }
 }
