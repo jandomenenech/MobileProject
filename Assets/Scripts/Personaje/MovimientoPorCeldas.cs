@@ -390,18 +390,8 @@ public class MovimientoPorCeldas : MonoBehaviour
         ataque.timeNextAttack = ataque.timeIdle;
         _attackQueued = false;
 
-        // Fijamos los par�metros de direcci�n usando la �ltima direcci�n conocida
         AplicarParametrosAnimator(lastInputDirection.x, lastInputDirection.y, false);
-
-        if (animatorsHijos != null)
-        {
-            foreach (var a in animatorsHijos)
-            {
-                if (a == null) continue;
-                a.enabled = true;
-                a.SetTrigger("Atacar");
-            }
-        }
+        ReproducirAtaqueDirecto();
 
         _attackingParado = true;
         _attackEndTime = Time.time + duracionAtaqueParado;
@@ -429,15 +419,7 @@ public class MovimientoPorCeldas : MonoBehaviour
             {
                 ataque.timeNextAttack = ataque.timeIdle;
                 AplicarParametrosAnimator(lastInputDirection.x, lastInputDirection.y, false);
-                if (animatorsHijos != null)
-                {
-                    foreach (var a in animatorsHijos)
-                    {
-                        if (a == null) continue;
-                        a.enabled = true;
-                        a.SetTrigger("Atacar");
-                    }
-                }
+                ReproducirAtaqueDirecto();
                 _attackingParado = true;
                 _attackEndTime = Time.time + duracionAtaqueParado;
                 ataque.detectarAtaque();
@@ -653,6 +635,29 @@ public class MovimientoPorCeldas : MonoBehaviour
             a.SetBool("IsMoving", false);
             a.Play(estado, 0, 0f);
         }
+    }
+
+    /// <summary>
+    /// Reproduce directamente el estado de ataque correcto en TODOS los Animators,
+    /// sin depender de triggers ni del estado previo del Animator.
+    /// </summary>
+    void ReproducirAtaqueDirecto()
+    {
+        if (animatorsHijos == null) return;
+        string estadoAtaque = NombreEstadoAtaque(lastInputDirection);
+        foreach (var a in animatorsHijos)
+        {
+            if (a == null) continue;
+            a.enabled = true;
+            a.Play(estadoAtaque, 0, 0f);
+        }
+    }
+
+    static string NombreEstadoAtaque(Vector2 direction)
+    {
+        if (Mathf.Abs(direction.x) > Mathf.Abs(direction.y))
+            return direction.x > 0 ? "Atacar Perfil R" : "Atacar Perfil L";
+        return direction.y > 0 ? "Atacar PA" : "Atacar AP";
     }
 
     /// <summary>AP=abajo, PA=arriba, Perfil L=izq, Perfil R=der. Misma logica para cuerpo y accesorios.</summary>
