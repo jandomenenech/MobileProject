@@ -125,6 +125,13 @@ public class MovimientoPorCeldas : MonoBehaviour
             _rb.interpolation = RigidbodyInterpolation2D.None;
             _rb.position = targetPosition;
         }
+        if (GetComponent<Collider2D>() == null)
+        {
+            var box = gameObject.AddComponent<BoxCollider2D>();
+            box.size = new Vector2(0.8f, 0.8f);
+            box.offset = Vector2.zero;
+            box.isTrigger = false;
+        }
 
         if (_spriteAP == null)
         {
@@ -307,7 +314,7 @@ public class MovimientoPorCeldas : MonoBehaviour
         {
             Vector2 newTargetPosition = targetPosition + inputDirection * cellSize;
 
-            if (IsOrthogonalMove(newTargetPosition) && !IsCellBlockedByMapCollider(newTargetPosition))
+            if (IsOrthogonalMove(newTargetPosition) && !IsCellBlockedByMapCollider(newTargetPosition) && !IsCellOccupiedByEntity(newTargetPosition))
             {
                 targetPosition = newTargetPosition;
                 isMoving = true;
@@ -576,6 +583,27 @@ public class MovimientoPorCeldas : MonoBehaviour
         }
         return Physics2D.OverlapPoint(checkPoint, _effectiveMapLayers) != null
             || Physics2D.OverlapCircle(checkPoint, 0.05f, _effectiveMapLayers) != null;
+    }
+
+    bool IsCellOccupiedByEntity(Vector2 cellCenter)
+    {
+        Vector2 checkPoint = cellCenter;
+        if (mapGrid != null)
+        {
+            Vector3Int cell = mapGrid.WorldToCell(cellCenter);
+            checkPoint = mapGrid.GetCellCenterWorld(cell);
+        }
+        Collider2D[] hits = Physics2D.OverlapCircleAll(checkPoint, 0.3f);
+        foreach (var hit in hits)
+        {
+            if (hit.transform.root == transform.root) continue;
+            if (hit.isTrigger) continue;
+            int layer = hit.gameObject.layer;
+            if (((1 << layer) & _effectiveMapLayers) != 0) continue;
+            if (hit.GetComponent<NPCMovimientoAleatorio>() != null)
+                return true;
+        }
+        return false;
     }
 
     // Permite a otros scripts obtener la direcci?n actual

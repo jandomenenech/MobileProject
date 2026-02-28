@@ -211,7 +211,7 @@ public class NPCMovimientoAleatorio : MonoBehaviour
             for (int k = 1; k <= celdasPorMovimiento && todasLibres; k++)
             {
                 Vector2 celda = celdaActual + dir * (k * _worldCellSize);
-                if (IsCellBlockedByMapCollider(celda))
+                if (IsCellBlockedByMapCollider(celda) || IsCellOccupiedByEntity(celda))
                     todasLibres = false;
             }
 
@@ -303,5 +303,26 @@ public class NPCMovimientoAleatorio : MonoBehaviour
         }
         return Physics2D.OverlapPoint(checkPoint, _effectiveMapLayers) != null
             || Physics2D.OverlapCircle(checkPoint, 0.05f, _effectiveMapLayers) != null;
+    }
+
+    private bool IsCellOccupiedByEntity(Vector2 cellCenter)
+    {
+        Vector2 checkPoint = cellCenter;
+        if (mapGrid != null)
+        {
+            Vector3Int cell = mapGrid.WorldToCell(cellCenter);
+            checkPoint = mapGrid.GetCellCenterWorld(cell);
+        }
+        Collider2D[] hits = Physics2D.OverlapCircleAll(checkPoint, 0.3f);
+        foreach (var hit in hits)
+        {
+            if (hit.transform.root == transform.root) continue;
+            if (hit.isTrigger) continue;
+            int layer = hit.gameObject.layer;
+            if (((1 << layer) & _effectiveMapLayers) != 0) continue;
+            if (hit.GetComponent<MovimientoPorCeldas>() != null)
+                return true;
+        }
+        return false;
     }
 }
