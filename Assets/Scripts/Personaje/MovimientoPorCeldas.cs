@@ -24,7 +24,7 @@ public class MovimientoPorCeldas : MonoBehaviour
     private Vector2 movementDirection;
     private bool isMoving = false;
 
-    /// <summary>True si el personaje se está moviendo hacia una celda.</summary>
+    /// <summary>True si el personaje se est? moviendo hacia una celda.</summary>
     public bool IsMoving => isMoving;    
     private Vector2 inputDirection;   
 
@@ -64,7 +64,7 @@ public class MovimientoPorCeldas : MonoBehaviour
     [Tooltip("SpriteRenderer del pelo. Si esta vacio, se busca un hijo llamado \"hair\".")]
     [SerializeField] private SpriteRenderer hairSpriteRenderer;
     [Tooltip("Nombre del peinado para cargar sprites desde Resources (ej: Peinado 1 Marron). Debe coincidir con los nombres AP 0 Caminar, PA 1, etc.")]
-    [SerializeField] private string hairSpritePrefix = "Peinado 1 Marrón";
+    [SerializeField] private string hairSpritePrefix = "Peinado 1 Marr?n";
     [Tooltip("Ruta en Resources donde estan los sprites del peinado (sin nombre del sprite).")]
     [SerializeField] private string hairResourcesPath = "Sprites/Peinado/Marron/Sprites/";
 
@@ -88,7 +88,14 @@ public class MovimientoPorCeldas : MonoBehaviour
     private Dictionary<string, Sprite> _axeAttackSpriteCache = new Dictionary<string, Sprite>();
     private Dictionary<string, Sprite> _armorSpriteCache = new Dictionary<string, Sprite>();
 
-    // Ataque parado desactivado: el ataque se gestiona solo desde AtaqueyInteraccion (con cooldown).
+    [Header("Ataque parado (solo Espacio)")]
+    [Tooltip("Duracion aproximada de la animacion de ataque en segundos (para volver a estado parado).")]
+    [SerializeField] private float duracionAtaqueParado = 0.45f;
+    private bool _attackingParado;
+    private float _attackEndTime;
+    // true cuando se ha pulsado Espacio mientras el personaje a?n estaba movi?ndose,
+    // para lanzar el ataque justo al llegar a la siguiente celda.
+    private bool _attackQueued;
     private Transform _manoOTool;
 
     void Start()
@@ -231,6 +238,8 @@ public class MovimientoPorCeldas : MonoBehaviour
             return;
         }
 
+        ProcesarEntradaAtaque();
+
         if (_rb != null)
             transform.position = _rb.position;
         Vector2 pos = (Vector2)transform.position;
@@ -241,7 +250,7 @@ public class MovimientoPorCeldas : MonoBehaviour
 
     void LateUpdate()
     {
-        if (!isMoving && inventario != null && inventario.tieneHachaEquipada && _manoOTool != null)
+        if (!isMoving && !_attackingParado && inventario != null && inventario.tieneHachaEquipada && _manoOTool != null)
             ActualizarHachaEstatica(lastInputDirection);
     }
 
@@ -250,6 +259,9 @@ public class MovimientoPorCeldas : MonoBehaviour
     /// </summary>
     void ProcesarRotacionEnCelda()
     {
+        // No permitir cambiar la orientaci?n mientras se est? realizando un ataque parado
+        if (_attackingParado) return;
+
         bool modifier = Input.GetKey(teclaRotar);
         if (!modifier) return;
 
@@ -269,6 +281,10 @@ public class MovimientoPorCeldas : MonoBehaviour
     void DetectMovementInput()
     {
         inputDirection = Vector2.zero;
+
+        // Mientras el personaje est? realizando un ataque parado, no aceptar nueva entrada de movimiento
+        if (_attackingParado)
+            return;
 
         // Nota: si pulsas varias teclas a la vez, la ?ltima l?nea evaluada puede sobrescribir.
         if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow)) inputDirection = Vector2.up;
@@ -302,6 +318,14 @@ public class MovimientoPorCeldas : MonoBehaviour
         // Solo animar andar cuando realmente nos movemos; si estamos bloqueados (tecla pulsada pero sin avanzar) no andar
         bool isMovingAnim = isMoving;
 
+        // Si estamos en un ataque parado, no cambiamos la ?ltima direcci?n por nuevas teclas
+        // y forzamos el par?metro IsMoving a false para que la animaci?n sea coherente.
+        if (_attackingParado)
+        {
+            AplicarParametrosAnimator(lastInputDirection.x, lastInputDirection.y, false);
+            return;
+        }
+
         // Solo actualizamos la ultima direccion cuando hay entrada Y no estamos rotando con Control (para que Control+flecha no se sobrescriba)
         bool modifier = Input.GetKey(teclaRotar);
         if (inputDirection != Vector2.zero && !modifier)
@@ -325,25 +349,122 @@ public class MovimientoPorCeldas : MonoBehaviour
                 }
     }
 
-    // --- Orientacion: al estar parado usamos sprite por codigo; al andar el Animator controla el sprite ---
-    void ActualizarOrientacionYGizmo()
+    void ProcesarEntradaAtaque()
     {
+        // Si ya estamos atacando o hay un ataque en cola, ignoramos nuevas pulsaciones
+        if (_attackingParado || _attackQueued)
+            return;
+
+        var ataque = GetComponent<AtaqueyInteraccion>();
+        if (ataque == null) return;
+
+        if (Input.GetKeyDown(KeyCode.Space) && ataque.timeNextAttack <= 0f)
+        {
+            // Si estamos moviï¿½ndonos, guardamos que hay un ataque pendiente
+            // y lo lanzaremos cuando lleguemos a la celda destino.
+            if (isMoving)
+            {
+                _attackQueued = true;
+            }
+            else
+            {
+                IniciarAtaqueParado(ataque);
+            }
+        }
+    }
+
+    void IniciarAtaqueParado(AtaqueyInteraccion ataque)
+    {
+        if (ataque == null) return;
+
+        ataque.timeNextAttack = ataque.timeIdle;
+        _attackQueued = false;
+
+        // Fijamos los parï¿½metros de direcciï¿½n usando la ï¿½ltima direcciï¿½n conocida
+        AplicarParametrosAnimator(lastInputDirection.x, lastInputDirection.y, false);
+
+        // Activar todos los animadores (cuerpo + hacha + pelo) y lanzar Atacar en todos
         if (animatorsHijos != null)
         {
             foreach (var a in animatorsHijos)
             {
                 if (a == null) continue;
-                // No desactivamos nunca los Animator para que puedan procesar el trigger de ataque
-                // incluso cuando el personaje está parado.
-                if (!a.enabled)
-                    a.enabled = true;
+                a.enabled = true;
+                a.SetTrigger("Atacar");
+            }
+        }
+        if (_manoOTool != null)
+        {
+            foreach (var a in _manoOTool.GetComponentsInChildren<Animator>(true))
+            {
+                if (a == null) continue;
+                a.enabled = true;
+                a.SetTrigger("Atacar");
+            }
+        }
+
+        _attackingParado = true;
+        _attackEndTime = Time.time + duracionAtaqueParado;
+        ataque.detectarAtaque();
+    }
+
+    // --- Orientacion: al estar parado usamos sprite por codigo; al andar el Animator controla el sprite ---
+    void ActualizarOrientacionYGizmo()
+    {
+        if (_attackingParado && Time.time >= _attackEndTime)
+            _attackingParado = false;
+
+        bool atacandoParado = !isMoving && _attackingParado;
+
+        if (!isMoving && !atacandoParado && Input.GetKeyDown(KeyCode.Space))
+        {
+            var ataque = GetComponent<AtaqueyInteraccion>();
+            if (ataque != null && ataque.timeNextAttack <= 0f)
+            {
+                ataque.timeNextAttack = ataque.timeIdle;
+                // Activar todos los animadores (cuerpo + hacha + pelo) y lanzar Atacar en todos para que la animaci?n sea coherente
+                AplicarParametrosAnimator(lastInputDirection.x, lastInputDirection.y, false);
+                if (animatorsHijos != null)
+                {
+                    foreach (var a in animatorsHijos)
+                    {
+                        if (a == null) continue;
+                        a.enabled = true;
+                        a.SetTrigger("Atacar");
+                    }
+                }
+                if (_manoOTool != null)
+                    foreach (var a in _manoOTool.GetComponentsInChildren<Animator>(true))
+                        if (a != null) { a.enabled = true; a.SetTrigger("Atacar"); }
+                _attackingParado = true;
+                _attackEndTime = Time.time + duracionAtaqueParado;
+                ataque.detectarAtaque();
+            }
+        }
+
+        if (animatorsHijos != null)
+        {
+            if (atacandoParado)
+            {
+                // Durante el ataque parado dejamos todos los animadores activos para que cuerpo y hacha animen
+                foreach (var a in animatorsHijos)
+                    if (a != null) a.enabled = true;
+            }
+            else
+            {
+                foreach (var a in animatorsHijos)
+                {
+                    if (a == null) continue;
+                    if (_manoOTool != null && a.transform.IsChildOf(_manoOTool)) continue;
+                    a.enabled = isMoving;
+                }
             }
         }
 
         SpriteRenderer srGizmo = spriteRenderer != null ? spriteRenderer : (_spriteForFlip != null ? _spriteForFlip : (_spriteForFlip = GetComponent<SpriteRenderer>() != null ? GetComponent<SpriteRenderer>() : GetComponentInChildren<SpriteRenderer>()));
         if (srGizmo != null) srGizmo.flipX = false;
 
-        if (!isMoving && _spriteAP != null && _spritePA != null && _spritePerfilL != null && _spritePerfilR != null)
+        if (!isMoving && !atacandoParado && _spriteAP != null && _spritePA != null && _spritePerfilL != null && _spritePerfilR != null)
         {
             Sprite s = DireccionASpriteCuerpo(lastInputDirection);
             if (s != null)
@@ -368,7 +489,7 @@ public class MovimientoPorCeldas : MonoBehaviour
                     if (hairSprite != null) { hairSpriteRenderer.flipX = false; hairSpriteRenderer.sprite = hairSprite; }
                 }
                 // Hacha: dejamos que la gestione el sistema de inventario (hacha prefab en la mano / Animator propio).
-                // No forzamos sprites aquí para no interferir con la lógica de equipar/desequipar.
+                // No forzamos sprites aqu? para no interferir con la l?gica de equipar/desequipar.
                 if (inventario != null && inventario.slotArmadura != null)
                 {
                     Sprite armorSprite = CargarSpriteArmadura(armorSpritePrefix + suffix);
@@ -394,9 +515,14 @@ public class MovimientoPorCeldas : MonoBehaviour
             }
         }
 
-        // Ya no recolocamos attackCheck por código; su posición la controla la animación.
-        // Esto permite atacar siempre en la última dirección en la que se miraba, tal como
-        // está definido en el Animator/collider, sin depender del movimiento actual.
+        // Gizmo / ataque: offset segun direccion (solo si hay referencia)
+        if (attackCheck == null) return;
+        Vector2 gizmoOffset;
+        if (Mathf.Abs(lastInputDirection.x) > Mathf.Abs(lastInputDirection.y))
+            gizmoOffset = (lastInputDirection.x > 0) ? offsetRight : offsetLeft;
+        else
+            gizmoOffset = (lastInputDirection.y > 0) ? offsetUp : offsetDown;
+        attackCheck.position = (Vector2)transform.position + gizmoOffset;
     }
 
     /// <summary>
@@ -552,7 +678,7 @@ public class MovimientoPorCeldas : MonoBehaviour
         }
     }
 
-    /// <summary>Parado + Control+flecha: pone el hacha con el sprite correcto SOLO si está equipada.</summary>
+    /// <summary>Parado + Control+flecha: pone el hacha con el sprite correcto SOLO si est? equipada.</summary>
     void ActualizarHachaEstatica(Vector2 direction)
     {
         if (inventario != null && !inventario.tieneHachaEquipada)
@@ -607,7 +733,7 @@ public class MovimientoPorCeldas : MonoBehaviour
             if (anim != null)
             {
                 // Si este hacha tiene Animator propio (como el prefab que se instancia en la mano),
-                // no lo tocamos para no ocultar ni romper su animación.
+                // no lo tocamos para no ocultar ni romper su animaci?n.
                 continue;
             }
             sr.gameObject.SetActive(false);
@@ -656,7 +782,7 @@ public class MovimientoPorCeldas : MonoBehaviour
         }
     }
 
-    /// <summary>Nombre exacto del sprite del pelo: Peinado 1 Marrón PA/AP/Perfil L/Perfil R 0 Caminar</summary>
+    /// <summary>Nombre exacto del sprite del pelo: Peinado 1 Marr?n PA/AP/Perfil L/Perfil R 0 Caminar</summary>
     string NombreSpritePeinadoEstatico(Vector2 direction)
     {
         string sufijo = DireccionASufijoEstatico(direction);

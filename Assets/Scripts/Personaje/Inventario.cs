@@ -521,8 +521,10 @@ public class Inventario : MonoBehaviour
             a.SetFloat("Horizontal", h);
             a.SetFloat("Vertical", v);
             a.SetBool("IsMoving", isMoving);
-            // Mantener siempre activo el Animator del hacha para que pueda atacar estando parado.
-            if (!a.enabled)
+            // Importante: solo activamos el Animator cuando se mueve.
+            // No lo desactivamos cuando está parado para no cortar la animación de ataque parado
+            // que lanza MovimientoPorCeldas.
+            if (isMoving && !a.enabled)
                 a.enabled = true;
         }
     }
