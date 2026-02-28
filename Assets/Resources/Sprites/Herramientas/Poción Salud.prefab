@@ -100,6 +100,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6a11cc3873ea10c419d638fd0809bdf9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  categoria: 4
   esRecogido: 0
   player: {fileID: 0}
   textura: {fileID: 2800000, guid: 679b3cc30cf5dd348a4f44fa98f5a321, type: 3}

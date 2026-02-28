@@ -3,11 +3,37 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
+public enum CategoriaObjeto
+{
+    Ninguno,
+    Arma,
+    Herramienta,
+    Armadura,
+    Recurso
+}
+
 public class ObjetoRecogible : MonoBehaviour
 {
+    [Header("Clasificacion")]
+    public CategoriaObjeto categoria = CategoriaObjeto.Ninguno;
+
     public bool esRecogido = false;
     public GameObject player;
     public Texture textura;
+
+    public static bool EsArma(GameObject obj)
+    {
+        if (obj == null) return false;
+        var rec = obj.GetComponent<ObjetoRecogible>();
+        return rec != null && rec.categoria == CategoriaObjeto.Arma;
+    }
+
+    public static bool EsArmaduraPorCategoria(GameObject obj)
+    {
+        if (obj == null) return false;
+        var rec = obj.GetComponent<ObjetoRecogible>();
+        return rec != null && rec.categoria == CategoriaObjeto.Armadura;
+    }
 
     void Start()
     {

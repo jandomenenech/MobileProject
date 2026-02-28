@@ -24,6 +24,15 @@ public class Inventario : MonoBehaviour
     // como el de movimiento, puedan saberlo y mostrar/ocultar la hacha visual).
     [HideInInspector] public bool tieneHachaEquipada = false;
 
+    /// <summary>
+    /// true si el personaje tiene cualquier arma equipada (hacha, espada, etc.).
+    /// Punto unico de consulta para el sistema de ataque.
+    /// </summary>
+    public bool TieneArmaEquipada
+    {
+        get { return tieneHachaEquipada; }
+    }
+
     [Header("Armadura")]
     [Tooltip("Objeto en el slot de armadura (null si no hay ninguna).")]
     [HideInInspector] public GameObject slotArmadura;
@@ -122,7 +131,7 @@ public class Inventario : MonoBehaviour
         GameObject obj = inventario[slotIndex];
         if (obj == null) return;
 
-        if (obj.name.ToLower().Contains("hacha") && tieneHachaEquipada)
+        if (ObjetoRecogible.EsArma(obj) && tieneHachaEquipada)
             DesequiparHacha();
 
         var movimiento = GetComponent<MovimientoPorCeldas>();
@@ -262,7 +271,7 @@ public class Inventario : MonoBehaviour
         GameObject itemJugador = inventario[slotJugador];
         if (itemJugador == null) return;
 
-        if (itemJugador.name.ToLower().Contains("hacha") && tieneHachaEquipada)
+        if (ObjetoRecogible.EsArma(itemJugador) && tieneHachaEquipada)
             DesequiparHacha();
         if (slotArmadura == itemJugador)
         {
@@ -359,11 +368,11 @@ public class Inventario : MonoBehaviour
                 continue;
             }
 
-            // 2) Si es un objeto recogible (hacha / armadura), recogerlo.
+            // 2) Si es un objeto recogible con categoria asignada, recogerlo.
             if (!go.CompareTag("Recogible")) continue;
 
-            string nombre = go.name;
-            if (!nombre.Contains("Hacha") && !nombre.Contains("Armadura")) continue;
+            var recogible = go.GetComponent<ObjetoRecogible>();
+            if (recogible == null || recogible.categoria == CategoriaObjeto.Ninguno) continue;
 
             objeto = go;
             RecogerObjeto();
@@ -392,18 +401,19 @@ public class Inventario : MonoBehaviour
         GameObject item = inventario[index];
         if (item == null) return;
 
-        // De momento solo hacha. Si el slot contiene un objeto cuyo nombre incluye "hacha",
-        // la tecla alterna entre equipar y desequipar.
-        if (item.name.ToLower().Contains("hacha"))
+        var recogible = item.GetComponent<ObjetoRecogible>();
+        if (recogible == null) return;
+
+        if (recogible.categoria == CategoriaObjeto.Arma)
         {
             if (!tieneHachaEquipada)
             {
-                Debug.Log($"Acceso r�pido {index + 1}: equipar hacha desde el slot {index + 1}.");
+                Debug.Log($"Acceso rapido {index + 1}: equipar arma desde el slot {index + 1}.");
                 EquiparHacha();
             }
             else
             {
-                Debug.Log($"Acceso r�pido {index + 1}: desequipar hacha.");
+                Debug.Log($"Acceso rapido {index + 1}: desequipar arma.");
                 DesequiparHacha();
             }
         }
@@ -541,7 +551,7 @@ public class Inventario : MonoBehaviour
 
     static bool EsArmadura(GameObject obj)
     {
-        return obj != null && obj.name.ToLower().Contains("armadura");
+        return ObjetoRecogible.EsArmaduraPorCategoria(obj);
     }
 
     public static bool EsObjetoArmadura(GameObject obj)

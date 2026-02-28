@@ -373,8 +373,10 @@ public class MovimientoPorCeldas : MonoBehaviour
 
     void ProcesarEntradaAtaque()
     {
-        // Si ya estamos atacando o hay un ataque en cola, ignoramos nuevas pulsaciones
         if (_attackingParado || _attackQueued)
+            return;
+
+        if (inventario == null || !inventario.TieneArmaEquipada)
             return;
 
         var ataque = GetComponent<AtaqueyInteraccion>();
@@ -443,13 +445,13 @@ public class MovimientoPorCeldas : MonoBehaviour
 
         bool atacandoParado = !isMoving && _attackingParado;
 
-        if (!isMoving && !atacandoParado && Input.GetKeyDown(KeyCode.Space))
+        if (!isMoving && !atacandoParado && Input.GetKeyDown(KeyCode.Space)
+            && inventario != null && inventario.TieneArmaEquipada)
         {
             var ataque = GetComponent<AtaqueyInteraccion>();
             if (ataque != null && ataque.timeNextAttack <= 0f)
             {
                 ataque.timeNextAttack = ataque.timeIdle;
-                // Activar todos los animadores (cuerpo + hacha + pelo) y lanzar Atacar en todos para que la animaci?n sea coherente
                 AplicarParametrosAnimator(lastInputDirection.x, lastInputDirection.y, false);
                 if (animatorsHijos != null)
                 {
