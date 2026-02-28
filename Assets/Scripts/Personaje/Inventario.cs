@@ -584,6 +584,9 @@ public class Inventario : MonoBehaviour
         }
         else
             Debug.LogWarning("[Inventario] No se encontro el visual de armadura (objeto 'armor') en el personaje.");
+
+        var move = GetComponent<MovimientoPorCeldas>();
+        if (move != null) move.RefrescarAnimatorsHijos();
     }
 
     GameObject ObtenerVisualArmadura()
@@ -613,6 +616,9 @@ public class Inventario : MonoBehaviour
         GameObject visual = ObtenerVisualArmadura();
         if (visual != null)
             visual.SetActive(false);
+
+        var move = GetComponent<MovimientoPorCeldas>();
+        if (move != null) move.RefrescarAnimatorsHijos();
     }
 
     public void PonerEnSlotArmadura(int gridSlotIndex)

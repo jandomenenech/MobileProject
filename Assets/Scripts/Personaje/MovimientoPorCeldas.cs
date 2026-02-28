@@ -199,7 +199,17 @@ public class MovimientoPorCeldas : MonoBehaviour
             isMoving = false;
             _stuckFrames = 0;
             _lastDistToTarget = float.MaxValue;
-            DetectMovementInput();
+            if (_attackQueued)
+            {
+                _attackQueued = false;
+                var ataque = GetComponent<AtaqueyInteraccion>();
+                if (ataque != null)
+                    IniciarAtaqueParado(ataque);
+            }
+            else
+            {
+                DetectMovementInput();
+            }
         }
         else if (isMoving)
         {
@@ -426,6 +436,8 @@ public class MovimientoPorCeldas : MonoBehaviour
             }
         }
 
+        atacandoParado = !isMoving && _attackingParado;
+
         if (animatorsHijos != null)
         {
             if (atacandoParado)
@@ -470,7 +482,7 @@ public class MovimientoPorCeldas : MonoBehaviour
                 if (!_loggedStaticSpriteOnce) { _loggedStaticSpriteOnce = true; Debug.Log("MovimientoPorCeldas: sprite estatico aplicado (parado)."); }
             }
         }
-        if ((isMoving) && _bodySpriteForSync != null && _bodySpriteForSync.sprite != null)
+        if (isMoving && !_attackingParado && _bodySpriteForSync != null && _bodySpriteForSync.sprite != null)
         {
             string bodyName = _bodySpriteForSync.sprite.name;
             string suffix = ObtenerSufijoDireccionFrame(bodyName);
