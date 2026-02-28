@@ -61,3 +61,7 @@ sysinfo.txt
 # Crashlytics generated file
 crashlytics-build.properties
 
+# Layouts de editor (por usuario, no versionar)
+UserSettings/Layouts/default-2023.dwlt
+UserSettings/Layouts/CurrentMaximizeLayout.dwlt
+
