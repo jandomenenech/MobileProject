@@ -28,22 +28,34 @@ public class AtaqueyInteraccion : MonoBehaviour
         }
     }
 
+    [SerializeField] private float cellSize = 1f;
+
     private void Attack()
     {
-        Collider2D[] objeto = Physics2D.OverlapCircleAll(attackCheck.position, radiusAttack);
+        if (move == null) return;
+        Vector2 facing = move.GetLastInputDirection();
+        if (facing.sqrMagnitude < 0.01f) return;
+        facing.Normalize();
+
+        Vector2 celdaJugador = move.GetPosicionCeldaActual();
+        Vector2 celdaAtacada = celdaJugador + facing * cellSize;
+        Vector2 boxSize = new Vector2(cellSize * 0.9f, cellSize * 0.9f);
+
+        Collider2D[] objeto = Physics2D.OverlapBoxAll(celdaAtacada, boxSize, 0f);
         foreach (Collider2D collision in objeto)
         {
-            if (collision.CompareTag("Arbusto"))
-            {
-                collision.transform.GetComponent<Arbusto>().cortarArbusto();
-                Debug.Log("Tocado");
-            }
+            if (!collision.CompareTag("Arbusto")) continue;
+            collision.transform.GetComponent<Arbusto>().cortarArbusto();
+            Debug.Log("Tocado");
         }
     }
     private void OnDrawGizmos()
     {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(attackCheck.position, radiusAttack);
+        if (attackCheck != null)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(attackCheck.position, radiusAttack);
+        }
     }
 
     public void gizosOrient()
