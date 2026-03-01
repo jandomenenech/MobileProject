@@ -21,7 +21,9 @@ public class OrdenarPorPosicionDelJugador : MonoBehaviour
     [SerializeField] private Sprite spriteJugadorEnMismaCelda;
 
     [Header("Celda de referencia de este objeto")]
-    [Tooltip("Posición del pivot del sprite (normalmente la posición del GameObject).")]
+    [Tooltip("Si está activo (por defecto), usa siempre la posición actual del objeto. Al duplicar, cada copia funcionará correctamente.")]
+    [SerializeField] private bool usarPosicionActual = true;
+    [Tooltip("Posición del pivot del sprite (solo se usa si 'Usar posición actual' está desactivado).")]
     [SerializeField] private Vector2 centroCelda = Vector2.zero;
     [Tooltip("Altura del sprite medida en número de casillas (1 = ocupa una casilla de alto, 2 = dos casillas, etc.).")]
     [SerializeField] private int alturaEnCeldas = 1;
@@ -103,7 +105,10 @@ public class OrdenarPorPosicionDelJugador : MonoBehaviour
         // Calculamos la Y de la CASILLA BASE de esta hierba.
         // Si el sprite mide varias casillas de alto y el pivot está centrado,
         // la casilla base está por debajo del pivot.
-        float yBaseHierba = centroCelda.y;
+        // Usar siempre transform.position cuando usarPosicionActual=true evita
+        // que los duplicados hereden un centroCelda incorrecto del objeto original.
+        Vector2 centro = usarPosicionActual ? (Vector2)transform.position : centroCelda;
+        float yBaseHierba = centro.y;
         if (alturaEnCeldas > 1)
         {
             // Ejemplo: alturaEnCeldas = 2 => desplazamiento = 0.5 * cellSize hacia abajo.
@@ -142,7 +147,7 @@ public class OrdenarPorPosicionDelJugador : MonoBehaviour
             // Consideramos misma casilla base si la posición de celda del jugador coincide en X
             // con el centro de la hierba y en Y con la casilla base, dentro de una pequeña tolerancia.
             bool mismaCelda =
-                Mathf.Abs(celdaJugador.x - centroCelda.x) <= cellSize * 0.1f &&
+                Mathf.Abs(celdaJugador.x - centro.x) <= cellSize * 0.1f &&
                 Mathf.Abs(celdaJugador.y - yBaseHierba) <= toleranciaMismaFila;
 
             if (mismaCelda && !_estaEnMismaCelda)
