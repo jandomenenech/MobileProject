@@ -412,7 +412,6 @@ public class MovimientoPorCeldas : MonoBehaviour
 
         _attackingParado = true;
         _attackEndTime = Time.time + duracionAtaqueParado;
-        ataque.detectarAtaque();
     }
 
     // --- Orientacion: al estar parado usamos sprite por codigo; al andar el Animator controla el sprite ---
@@ -439,7 +438,6 @@ public class MovimientoPorCeldas : MonoBehaviour
                 ReproducirAtaqueDirecto();
                 _attackingParado = true;
                 _attackEndTime = Time.time + duracionAtaqueParado;
-                ataque.detectarAtaque();
             }
         }
 

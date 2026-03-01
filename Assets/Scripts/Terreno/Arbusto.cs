@@ -6,31 +6,60 @@ public class Arbusto : MonoBehaviour
 {
     private SpriteRenderer arbusto;
     public Sprite arbustoCortado;
+    [SerializeField] private GameObject efectoCorte;
+    [SerializeField] private GameObject efectoCorteRamas;
+    private bool cortado;
+    private bool destruido;
 
-    // Start is called before the first frame update
     void Start()
     {
         arbusto = GetComponent<SpriteRenderer>();
     }
 
-    // Update is called once per frame
     void Update()
     {
-        estadoArbusto();
+        if (!destruido || efectoCorteRamas == null || !efectoCorteRamas.activeInHierarchy)
+            return;
+
+        var anim = efectoCorteRamas.GetComponent<Animator>();
+        if (anim == null || !anim.enabled) return;
+
+        var state = anim.GetCurrentAnimatorStateInfo(0);
+        if (state.normalizedTime >= 1f && !anim.IsInTransition(0))
+        {
+            gameObject.SetActive(false);
+        }
     }
 
     public void cortarArbusto()
     {
-        foreach (Transform hijo in transform)
+        if (!cortado)
         {
-            hijo.gameObject.SetActive(false);
+            cortado = true;
+            foreach (Transform hijo in transform)
+            {
+                hijo.gameObject.SetActive(false);
+            }
+            arbusto.sprite = arbustoCortado;
+
+            if (efectoCorte != null)
+            {
+                efectoCorte.SetActive(true);
+            }
         }
-        arbusto.sprite = arbustoCortado;
-    }
+        else if (!destruido)
+        {
+            destruido = true;
+            arbusto.enabled = false;
 
+            var col = GetComponent<Collider2D>();
+            if (col != null)
+                col.enabled = false;
 
-    private void estadoArbusto()
-    {
-        arbusto.sprite = arbusto.sprite;
+            if (efectoCorteRamas != null)
+            {
+                efectoCorteRamas.SetActive(true);
+            }
+        }
     }
 }
