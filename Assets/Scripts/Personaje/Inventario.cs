@@ -317,10 +317,19 @@ public class Inventario : MonoBehaviour
     public void RecibirItemDesdeBaul(BaulInteractuable baul, int slotBaul, int slotJugador)
     {
         if (baul == null || inventario == null || slotJugador < 0 || slotJugador >= inventario.Count) return;
+
+        int cantidadBaul = baul.GetCantidad(slotBaul);
+        int cantidadJugador = GetCantidadEnSlot(slotJugador);
+
         GameObject itemBaul = baul.GetContenido(slotBaul);
         GameObject itemJugador = inventario[slotJugador];
         baul.SetContenido(slotBaul, itemJugador);
         inventario[slotJugador] = itemBaul;
+
+        AsegurarTamanioCantidades();
+        cantidades[slotJugador] = cantidadBaul;
+        baul.SetCantidad(slotBaul, cantidadJugador);
+
         if (inv != null) inv.imagenesInventario();
         if (baul.panelInventarioBaul != null)
         {
@@ -346,9 +355,18 @@ public class Inventario : MonoBehaviour
             slotArmadura = null;
         }
 
+        // Cantidades de acumulables: intercambiamos también los contadores entre inventario y baúl.
+        int cantidadJugador = GetCantidadEnSlot(slotJugador);
+        int cantidadBaul = baul.GetCantidad(slotBaul);
+
         GameObject itemBaul = baul.GetContenido(slotBaul);
         inventario[slotJugador] = itemBaul;
         baul.SetContenido(slotBaul, itemJugador);
+
+        // Actualizar cantidades asociadas a los objetos intercambiados.
+        AsegurarTamanioCantidades();
+        cantidades[slotJugador] = cantidadBaul;
+        baul.SetCantidad(slotBaul, cantidadJugador);
         if (inv != null) inv.imagenesInventario();
         if (baul.panelInventarioBaul != null)
         {

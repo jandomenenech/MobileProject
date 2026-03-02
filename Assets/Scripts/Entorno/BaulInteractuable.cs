@@ -23,6 +23,8 @@ public class BaulInteractuable : MonoBehaviour
     private SpriteRenderer _sr;
     private bool _abierto;
     private List<GameObject> _contenido;
+    // Cantidad de acumulables por slot (0 = vacío o no acumulable)
+    private List<int> _cantidades;
     private Sprite _spriteCerrado;
 
     void Awake()
@@ -31,8 +33,12 @@ public class BaulInteractuable : MonoBehaviour
         if (_sr != null)
             _spriteCerrado = _sr.sprite;
         _contenido = new List<GameObject>();
+        _cantidades = new List<int>();
         for (int i = 0; i < cantidadSlots; i++)
+        {
             _contenido.Add(null);
+            _cantidades.Add(0);
+        }
     }
 
     /// <summary>Obtiene el objeto en el slot (puede ser null).</summary>
@@ -47,6 +53,9 @@ public class BaulInteractuable : MonoBehaviour
     {
         if (slot < 0 || slot >= _contenido.Count) return;
         _contenido[slot] = obj;
+        // Si quitamos el objeto, limpiamos también la cantidad.
+        if (obj == null && slot >= 0 && slot < _cantidades.Count)
+            _cantidades[slot] = 0;
     }
 
     /// <summary>Intercambia el contenido de dos slots del baúl.</summary>
@@ -56,6 +65,29 @@ public class BaulInteractuable : MonoBehaviour
         GameObject t = _contenido[slotA];
         _contenido[slotA] = _contenido[slotB];
         _contenido[slotB] = t;
+        if (_cantidades != null && slotA < _cantidades.Count && slotB < _cantidades.Count)
+        {
+            int c = _cantidades[slotA];
+            _cantidades[slotA] = _cantidades[slotB];
+            _cantidades[slotB] = c;
+        }
+    }
+
+    /// <summary>Cantidad almacenada en un slot (para objetos acumulables).</summary>
+    public int GetCantidad(int slot)
+    {
+        if (_cantidades == null || slot < 0 || slot >= _cantidades.Count) return 0;
+        return _cantidades[slot];
+    }
+
+    /// <summary>Establece la cantidad en un slot (para objetos acumulables).</summary>
+    public void SetCantidad(int slot, int cantidad)
+    {
+        if (slot < 0) return;
+        while (_cantidades.Count <= slot)
+            _cantidades.Add(0);
+        _cantidades[slot] = Mathf.Max(0, cantidad);
+        // Si la cantidad pasa a 0 pero hay objeto, lo dejamos; la lógica de UI decidirá si muestra número.
     }
 
     public void Abrir()

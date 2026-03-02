@@ -142,18 +142,70 @@ public class InventarioBaulGrafico : MonoBehaviour
                     Sprite sprite = InventarioGrafico.ObtenerSpriteDesdeTextura(ob.textura);
                     celdas[i].sprite = sprite;
                     celdas[i].color = new Color(1f, 1f, 1f, sprite != null ? 1f : 0f);
+
+                    // Mostrar cantidad si el objeto es acumulable.
+                    int cantidad = 0;
+                    if (ob.categoria == CategoriaObjeto.Acumulable)
+                        cantidad = baul.GetCantidad(i);
+                    ActualizarTextoCantidad(celdas[i], cantidad);
                 }
                 else
                 {
                     celdas[i].sprite = null;
                     celdas[i].color = new Color(1f, 1f, 1f, 0f);
+                    ActualizarTextoCantidad(celdas[i], 0);
                 }
             }
             else
             {
                 celdas[i].sprite = null;
                 celdas[i].color = new Color(1f, 1f, 1f, 0f);
+                ActualizarTextoCantidad(celdas[i], 0);
             }
+        }
+    }
+
+    void ActualizarTextoCantidad(Image slotImage, int cantidad)
+    {
+        if (slotImage == null) return;
+
+        Transform existente = slotImage.transform.Find("Cantidad");
+        Text txt = existente != null ? existente.GetComponent<Text>() : null;
+
+        if (txt == null)
+        {
+            GameObject go = new GameObject("Cantidad");
+            go.transform.SetParent(slotImage.transform, false);
+            go.transform.SetAsLastSibling();
+
+            txt = go.AddComponent<Text>();
+            txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            txt.alignment = TextAnchor.LowerRight;
+            txt.fontStyle = FontStyle.Bold;
+            txt.alignByGeometry = true;
+            txt.color = Color.white;
+            txt.raycastTarget = false;
+            txt.horizontalOverflow = HorizontalWrapMode.Overflow;
+            txt.verticalOverflow = VerticalWrapMode.Overflow;
+            txt.resizeTextForBestFit = false;
+            txt.fontSize = 4;
+
+            RectTransform rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+        }
+
+        if (cantidad > 0)
+        {
+            txt.text = cantidad.ToString();
+            txt.gameObject.SetActive(true);
+        }
+        else
+        {
+            txt.text = string.Empty;
+            txt.gameObject.SetActive(false);
         }
     }
 }
