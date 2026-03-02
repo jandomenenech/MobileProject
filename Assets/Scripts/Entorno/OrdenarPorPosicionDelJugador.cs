@@ -23,6 +23,8 @@ public class OrdenarPorPosicionDelJugador : MonoBehaviour
     [Header("Celda de referencia de este objeto")]
     [Tooltip("Si está activo (por defecto), usa siempre la posición actual del objeto. Al duplicar, cada copia funcionará correctamente.")]
     [SerializeField] private bool usarPosicionActual = true;
+    [Tooltip("Usa el centro del bounds del SpriteRenderer en vez de transform.position. Útil para sprites cuyo pivot no coincide con el centro visual (ej. NPCs con offset).")]
+    [SerializeField] private bool usarCentroSprite = false;
     [Tooltip("Posición del pivot del sprite (solo se usa si 'Usar posición actual' está desactivado).")]
     [SerializeField] private Vector2 centroCelda = Vector2.zero;
     [Tooltip("Altura del sprite medida en número de casillas (1 = ocupa una casilla de alto, 2 = dos casillas, etc.).")]

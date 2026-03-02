@@ -54,7 +54,6 @@ public class Inventario : MonoBehaviour
 
     void Update()
     {
-        obtenerObjeto();
         activarInventario();
         TryAccionConF();
         ProcesarTeclasAccesoRapido();
@@ -66,18 +65,6 @@ public class Inventario : MonoBehaviour
     {
         if (armaInstancia != null)
             armaInstancia.transform.localPosition = Vector3.zero;
-    }
-
-    public void obtenerObjeto() {
-        if (Input.GetKeyDown(KeyCode.E))// || Input.GetMouseButtonDown(0))
-        {
-            if(objeto != null)
-            {
-                RecogerObjeto();
-                inv.imagenesInventario();
-            }
-            
-        }
     }
 
     private void RecogerObjeto()
@@ -210,25 +197,6 @@ public class Inventario : MonoBehaviour
             inv.imagenesInventario();
     }
 
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision.CompareTag("Recogible"))
-        {
-            Debug.Log("Objeto en rango: " + collision.gameObject.name);
-            objeto = collision.gameObject;
-           // recoger = objeto.GetComponent<ObjetoRecogible>();
-        }
-    }
-
-    private void OnTriggerExit2D(Collider2D collision)
-    {
-        if (collision.CompareTag("Recogible"))
-        {
-            Debug.Log("Objeto no en rango: " + collision.gameObject.name);
-            objeto = null;
-        }
-        
-    }
 
  /* private void soltarObjeto()
 {
@@ -462,16 +430,11 @@ public class Inventario : MonoBehaviour
                 continue;
             }
 
-            // A partir de aquí, aplicamos el filtro de "estar mirando al objeto" con producto escalar.
-            Vector2 toObject = ((Vector2)col.transform.position - playerPos).normalized;
-            if (Vector2.Dot(toObject, dir) < 0.7f) continue;
-
             // 2) Si es un baúl interactuable, abrirlo (solo desde la casilla inferior mirándolo).
             var baul = go.GetComponent<BaulInteractuable>();
             if (baul != null)
             {
                 Vector2 delta = (Vector2)go.transform.position - playerPos;
-                // Queremos: jugador justo debajo del baúl (misma columna) y mirando hacia arriba.
                 bool mismaColumna = Mathf.Abs(delta.x) < 0.3f * cellSize;
                 bool baulArriba = delta.y > 0.3f * cellSize;
                 bool mirandoArriba = dir.y > 0.7f && Mathf.Abs(dir.x) < 0.2f;
@@ -480,17 +443,22 @@ public class Inventario : MonoBehaviour
                     baul.Abrir();
                     return;
                 }
-
-                // Si este collider es un baúl pero no cumple las condiciones (por ejemplo,
-                // es el baúl de al lado), seguimos buscando otros colliders en el bucle.
                 continue;
             }
 
-            // 3) Si es un objeto recogible con categoria asignada, recogerlo.
+            // 3) Si es un objeto recogible con categoria asignada, recogerlo
+            //    SOLO si está en la celda justo enfrente del jugador.
             if (!go.CompareTag("Recogible")) continue;
 
             var recogible = go.GetComponent<ObjetoRecogible>();
             if (recogible == null || recogible.categoria == CategoriaObjeto.Ninguno) continue;
+
+            {
+                Vector2 celdaJugador = move.GetPosicionCeldaActual();
+                Vector2 celdaEnfrente = celdaJugador + dir * cellSize;
+                if (Vector2.Distance((Vector2)go.transform.position, celdaEnfrente) > 0.5f)
+                    continue;
+            }
 
             objeto = go;
             RecogerObjeto();

@@ -18,6 +18,10 @@ public class Arbusto : MonoBehaviour
     [SerializeField] private GameObject prefabFruto;
     private bool frutosRecogidos;
 
+    [Header("Botín al cortar")]
+    [Tooltip("Prefab que se instanciará en la celda del arbusto al cortarlo por primera vez (ej. Rama).")]
+    [SerializeField] private GameObject prefabRamas;
+
     void Start()
     {
         arbusto = GetComponent<SpriteRenderer>();
@@ -89,9 +93,24 @@ public class Arbusto : MonoBehaviour
         else if (!destruido)
         {
             destruido = true;
+
+            // Calcular posición de drop ANTES de desactivar el collider.
+            Vector2 dropPos = transform.position;
+            var col = GetComponent<Collider2D>();
+            if (col != null)
+            {
+                Bounds b = col.bounds;
+                dropPos = new Vector2(b.center.x, b.min.y + 0.5f);
+            }
+
+            // Instanciar botín (ramas) en la celda del arbusto en el segundo golpe.
+            if (prefabRamas != null)
+            {
+                Instantiate(prefabRamas, dropPos, Quaternion.identity);
+            }
+
             arbusto.enabled = false;
 
-            var col = GetComponent<Collider2D>();
             if (col != null)
                 col.enabled = false;
 
