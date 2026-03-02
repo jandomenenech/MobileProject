@@ -6,6 +6,8 @@ using UnityEngine;
 public class Inventario : MonoBehaviour
 {
     public List<GameObject> inventario;
+    // Cantidad por slot (1 = objeto único, >1 = acumulado)
+    [SerializeField] private List<int> cantidades;
     public GameObject objeto;
     public GameObject inventarioGrafico;
     public InventarioGrafico inv;
@@ -45,6 +47,7 @@ public class Inventario : MonoBehaviour
         {
             inventario.Add(null);
         }
+        InicializarCantidades();
         DesequiparArma();
         DesequiparArmadura();
     }
@@ -81,20 +84,57 @@ public class Inventario : MonoBehaviour
     {
         if (objeto == null) return;
 
-        // Buscar primer espacio vac�o
+        var recogible = objeto.GetComponent<ObjetoRecogible>();
+
+        // Si es acumulable, intentamos apilarlo en un slot existente del mismo tipo.
+        if (recogible != null && recogible.categoria == CategoriaObjeto.Acumulable)
+        {
+            AsegurarTamanioCantidades();
+            for (int i = 0; i < inventario.Count; i++)
+            {
+                GameObject existente = inventario[i];
+                if (existente == null) continue;
+
+                var recExistente = existente.GetComponent<ObjetoRecogible>();
+                if (recExistente == null) continue;
+
+                // Mismo tipo si comparten textura y categoría acumulable.
+                if (recExistente.categoria == CategoriaObjeto.Acumulable &&
+                    recExistente.textura == recogible.textura)
+                {
+                    if (cantidades[i] <= 0) cantidades[i] = 1;
+                    cantidades[i]++;
+                    Debug.Log($"Inventario: acumulada '{objeto.name}' en el slot {i + 1}. Cantidad ahora: {cantidades[i]}.");
+                    // Eliminamos el objeto físico recogido (ya representado en el stack).
+                    Destroy(objeto);
+                    objeto = null;
+                    inv.imagenesInventario();
+                    return;
+                }
+            }
+        }
+
+        // Buscar primer espacio vacío para poner el objeto (o el inicio de un nuevo stack).
         int indiceLibre = inventario.FindIndex(item => item == null);
 
         if (indiceLibre != -1)
         {
             inventario[indiceLibre] = objeto;
-            Debug.Log($"Inventario: a�adido '{objeto.name}' en el slot {indiceLibre + 1}.");
+            AsegurarTamanioCantidades();
+            cantidades[indiceLibre] = 1;
+            Debug.Log($"Inventario: añadido '{objeto.name}' en el slot {indiceLibre + 1}.");
         }
         else
         {
-            inventario.Add(objeto); // Opcional: agrega al final si no hay espacio
-            Debug.Log($"Inventario: a�adido '{objeto.name}' al final (sin huecos libres previos).");
+            inventario.Add(objeto);
+            AsegurarTamanioCantidades();
+            while (cantidades.Count < inventario.Count)
+                cantidades.Add(0);
+            cantidades[inventario.Count - 1] = 1;
+            Debug.Log($"Inventario: añadido '{objeto.name}' al final (sin huecos libres previos).");
         }
 
+        ResetearEstadoRecogible(objeto);
         objeto.SetActive(false);
         inv.imagenesInventario();
     }
@@ -112,6 +152,11 @@ public class Inventario : MonoBehaviour
         inventario[desde] = inventario[hasta];
         inventario[hasta] = temp;
 
+        AsegurarTamanioCantidades();
+        int tempCantidad = cantidades[desde];
+        cantidades[desde] = cantidades[hasta];
+        cantidades[hasta] = tempCantidad;
+
         if (inv != null)
             inv.imagenesInventario();
     }
@@ -126,14 +171,37 @@ public class Inventario : MonoBehaviour
         GameObject obj = inventario[slotIndex];
         if (obj == null) return;
 
+        var recogible = obj.GetComponent<ObjetoRecogible>();
+
         if (ObjetoRecogible.EsArma(obj) && tieneArmaEquipada)
             DesequiparArma();
 
+        AsegurarTamanioCantidades();
+        int cantidadActual = cantidades[slotIndex] <= 0 ? 1 : cantidades[slotIndex];
+
         var movimiento = GetComponent<MovimientoPorCeldas>();
         Vector2 posCelda = movimiento != null ? movimiento.GetPosicionCeldaActual() : (Vector2)transform.position;
+
+        // Si es acumulable y hay más de 1 unidad, solo soltamos 1 y reducimos la cantidad.
+        if (recogible != null && recogible.categoria == CategoriaObjeto.Acumulable && cantidadActual > 1)
+        {
+            cantidades[slotIndex] = cantidadActual - 1;
+
+            GameObject copia = Instantiate(obj, posCelda, Quaternion.identity);
+            ResetearEstadoRecogible(copia);
+            copia.SetActive(true);
+
+            if (inv != null)
+                inv.imagenesInventario();
+            return;
+        }
+
+        // Caso normal: soltamos todo el stack (o un único objeto)
         obj.transform.position = posCelda;
+        ResetearEstadoRecogible(obj);
         obj.SetActive(true);
         inventario[slotIndex] = null;
+        cantidades[slotIndex] = 0;
         if (inv != null)
             inv.imagenesInventario();
     }
@@ -646,5 +714,37 @@ public class Inventario : MonoBehaviour
         else
             DesequiparArmadura();
         if (inv != null) inv.imagenesInventario();
+    }
+
+    void InicializarCantidades()
+    {
+        if (cantidades == null) cantidades = new List<int>();
+        while (cantidades.Count < inventario.Count)
+            cantidades.Add(0);
+    }
+
+    void AsegurarTamanioCantidades()
+    {
+        if (cantidades == null) cantidades = new List<int>();
+        while (cantidades.Count < inventario.Count)
+            cantidades.Add(0);
+    }
+
+    public int GetCantidadEnSlot(int index)
+    {
+        if (inventario == null || index < 0 || index >= inventario.Count) return 0;
+        AsegurarTamanioCantidades();
+        int c = cantidades[index];
+        if (c <= 0 && inventario[index] != null) return 1;
+        return c;
+    }
+
+    void ResetearEstadoRecogible(GameObject obj)
+    {
+        if (obj == null) return;
+        var rec = obj.GetComponent<ObjetoRecogible>();
+        if (rec == null) return;
+        rec.esRecogido = false;
+        rec.player = null;
     }
 }

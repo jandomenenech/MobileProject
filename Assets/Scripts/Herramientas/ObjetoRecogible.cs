@@ -5,11 +5,12 @@ using UnityEngine;
 
 public enum CategoriaObjeto
 {
-    Ninguno,
-    Arma,
-    Herramienta,
-    Armadura,
-    Recurso
+    Ninguno = 0,
+    Arma = 1,
+    Herramienta = 2,
+    Armadura = 3,
+    Recurso = 4,
+    Acumulable = 5
 }
 
 public class ObjetoRecogible : MonoBehaviour

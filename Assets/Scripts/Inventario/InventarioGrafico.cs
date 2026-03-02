@@ -123,8 +123,8 @@ public class InventarioGrafico : MonoBehaviour
     }
 
     /// <summary>
-    /// Fuerza que el panel del inventario tenga exactamente 221×124 en canvas y compense el escalado
-    /// del Canvas Scaler para que en pantalla se vea siempre 221×124 píxeles (como en la escena).
+    /// Ajusta el panel del inventario a 221×124 unidades de canvas y deja que el
+    /// CanvasScaler (Scale With Screen Size) lo escale proporcionalmente a la resolución.
     /// </summary>
     void AjustarTamanoPanelInventario()
     {
@@ -136,19 +136,7 @@ public class InventarioGrafico : MonoBehaviour
         rect.pivot = new Vector2(0.5f, 0.5f);
         rect.anchoredPosition = Vector2.zero;
         rect.sizeDelta = new Vector2(ResolucionPixelGrid.AnchoPixels, ResolucionPixelGrid.AltoPixels);
-
-        // En juego el Canvas Scaler escala todo; compensamos para que el inventario ocupe siempre 221×124 px en pantalla
-        var canvas = GetComponentInParent<Canvas>();
-        if (canvas != null && canvas.renderMode != RenderMode.WorldSpace)
-        {
-            float scaleFactor = canvas.scaleFactor;
-            if (scaleFactor > 0.001f)
-                rect.localScale = new Vector3(1f / scaleFactor, 1f / scaleFactor, 1f);
-        }
-        else
-        {
-            rect.localScale = Vector3.one;
-        }
+        rect.localScale = Vector3.one;
     }
 
     // Update is called once per frame
@@ -188,11 +176,18 @@ public class InventarioGrafico : MonoBehaviour
                 Sprite sprite = ObtenerSpriteDesdeTexto(objeto.textura);
                 celdas[i].sprite = sprite;
                 celdas[i].color = new Color(1f, 1f, 1f, sprite != null ? 1f : 0f);
+
+                // Actualizar texto de cantidad SOLO si el objeto es acumulable.
+                int cantidad = 0;
+                if (objeto.categoria == CategoriaObjeto.Acumulable)
+                    cantidad = inv.GetCantidadEnSlot(i);
+                ActualizarTextoCantidad(celdas[i], cantidad);
             }
             else
             {
                 celdas[i].sprite = null;
                 celdas[i].color = new Color(1f, 1f, 1f, 0f);
+                ActualizarTextoCantidad(celdas[i], 0);
             }
         }
         if (slotArmaduraImage != null)
@@ -218,6 +213,50 @@ public class InventarioGrafico : MonoBehaviour
     Sprite ObtenerSpriteDesdeTexto(Texture textura)
     {
         return InventarioGrafico.ObtenerSpriteDesdeTextura(textura);
+    }
+
+    void ActualizarTextoCantidad(Image slotImage, int cantidad)
+    {
+        if (slotImage == null) return;
+
+        Transform existente = slotImage.transform.Find("Cantidad");
+        Text txt = existente != null ? existente.GetComponent<Text>() : null;
+
+        if (txt == null)
+        {
+            GameObject go = new GameObject("Cantidad");
+            go.transform.SetParent(slotImage.transform, false);
+            go.transform.SetAsLastSibling();
+
+            txt = go.AddComponent<Text>();
+            txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            txt.alignment = TextAnchor.LowerRight;      // abajo a la derecha
+            txt.fontStyle = FontStyle.Bold;             // negrita
+            txt.alignByGeometry = true;                 // Align by Geometry
+            txt.color = Color.white;                    // blanco puro (FFFFFF)
+            txt.raycastTarget = false;
+            txt.horizontalOverflow = HorizontalWrapMode.Overflow;
+            txt.verticalOverflow = VerticalWrapMode.Overflow;
+            txt.resizeTextForBestFit = false;           // tamaño fijo
+            txt.fontSize = 4;                           // Font Size 4
+
+            RectTransform rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+        }
+
+        if (cantidad > 0)
+        {
+            txt.text = cantidad.ToString();
+            txt.gameObject.SetActive(true);
+        }
+        else
+        {
+            txt.text = string.Empty;
+            txt.gameObject.SetActive(false);
+        }
     }
 
     /// <summary>Convierte una textura a Sprite (compartido con InventarioBaulGrafico).</summary>

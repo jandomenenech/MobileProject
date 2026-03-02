@@ -61,7 +61,8 @@ public class InventarioBaulGrafico : MonoBehaviour
     [SerializeField] private float separacionInventario = 0f;
 
     /// <summary>
-    /// Mismo tamaño que el inventario del personaje (221×124 px). Solo aplica posición si separacionInventario > 0.
+    /// Mismo tamaño que el inventario del personaje (221×124 unidades de canvas).
+    /// Deja que el CanvasScaler escale proporcionalmente a la resolución.
     /// </summary>
     void AjustarTamanoPanel()
     {
@@ -77,18 +78,7 @@ public class InventarioBaulGrafico : MonoBehaviour
             rect.anchoredPosition = new Vector2(offsetX, 0f);
         }
         rect.sizeDelta = new Vector2(ResolucionPixelGrid.AnchoPixels, ResolucionPixelGrid.AltoPixels);
-
-        var canvas = GetComponentInParent<Canvas>();
-        if (canvas != null && canvas.renderMode != RenderMode.WorldSpace)
-        {
-            float scaleFactor = canvas.scaleFactor;
-            if (scaleFactor > 0.001f)
-                rect.localScale = new Vector3(1f / scaleFactor, 1f / scaleFactor, 1f);
-        }
-        else
-        {
-            rect.localScale = Vector3.one;
-        }
+        rect.localScale = Vector3.one;
     }
 
     void AutoRellenarCeldasSiEstanVacias()
