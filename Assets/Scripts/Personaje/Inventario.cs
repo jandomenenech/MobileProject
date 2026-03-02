@@ -85,6 +85,7 @@ public class Inventario : MonoBehaviour
         if (objeto == null) return;
 
         var recogible = objeto.GetComponent<ObjetoRecogible>();
+        string nombreLimpio = NombreLimpioObjeto(objeto);
 
         // Si es acumulable, intentamos apilarlo en un slot existente del mismo tipo.
         if (recogible != null && recogible.categoria == CategoriaObjeto.Acumulable)
@@ -105,7 +106,7 @@ public class Inventario : MonoBehaviour
                     if (cantidades[i] <= 0) cantidades[i] = 1;
                     cantidades[i]++;
                     Debug.Log($"Inventario: acumulada '{objeto.name}' en el slot {i + 1}. Cantidad ahora: {cantidades[i]}.");
-                    MensajeInventario.MostrarMensaje($"Añadida {objeto.name} al inventario (x{cantidades[i]})");
+                    MensajeInventario.MostrarMensaje($"Añadida {nombreLimpio} al inventario (x{cantidades[i]})");
                     // Eliminamos el objeto físico recogido (ya representado en el stack).
                     Destroy(objeto);
                     objeto = null;
@@ -135,7 +136,7 @@ public class Inventario : MonoBehaviour
             Debug.Log($"Inventario: añadido '{objeto.name}' al final (sin huecos libres previos).");
         }
 
-        MensajeInventario.MostrarMensaje($"Añadido {objeto.name} al inventario");
+        MensajeInventario.MostrarMensaje($"Añadido {nombreLimpio} al inventario");
 
         ResetearEstadoRecogible(objeto);
         objeto.SetActive(false);
@@ -409,12 +410,45 @@ public class Inventario : MonoBehaviour
         {
             if (col == null || !col.gameObject.activeInHierarchy) continue;
 
+            GameObject go = col.gameObject;
+
+            // 1) Si es un arbusto con frutos, recoger frutos SOLO si la celda justo delante coincide
+            //    con la celda base del arbusto (evita diagonales o posiciones incorrectas).
+            if (go.CompareTag("Arbusto"))
+            {
+                var arb = go.GetComponent<Arbusto>();
+                if (arb != null && arb.TieneFrutos)
+                {
+                    // Celda en la que el jugador está y celda justo delante (grid-alineado)
+                    Vector2 celdaJugador = move.GetPosicionCeldaActual();
+                    Vector2 celdaEnfrente = celdaJugador + dir * cellSize;
+
+                    // Aproximamos la celda base del arbusto con el centro de su collider
+                    var col2D = col as Collider2D;
+                    Vector2 baseArbusto = col2D != null ? (Vector2)col2D.bounds.center : (Vector2)go.transform.position;
+
+                    // Si la distancia entre la celda objetivo y la base del arbusto es demasiado grande,
+                    // no estamos mirando correctamente a su celda.
+                    if (Vector2.Distance(baseArbusto, celdaEnfrente) > 0.3f)
+                        continue;
+
+                    GameObject fruto = arb.RecogerFrutos();
+                    if (fruto != null)
+                    {
+                        objeto = fruto;
+                        RecogerObjeto();
+                        objeto = null;
+                    }
+                    return;
+                }
+                continue;
+            }
+
+            // A partir de aquí, aplicamos el filtro de "estar mirando al objeto" con producto escalar.
             Vector2 toObject = ((Vector2)col.transform.position - playerPos).normalized;
             if (Vector2.Dot(toObject, dir) < 0.7f) continue;
 
-            GameObject go = col.gameObject;
-
-            // 1) Si es un baúl interactuable, abrirlo (solo desde la casilla inferior mirándolo).
+            // 2) Si es un baúl interactuable, abrirlo (solo desde la casilla inferior mirándolo).
             var baul = go.GetComponent<BaulInteractuable>();
             if (baul != null)
             {
@@ -434,7 +468,7 @@ public class Inventario : MonoBehaviour
                 continue;
             }
 
-            // 2) Si es un objeto recogible con categoria asignada, recogerlo.
+            // 3) Si es un objeto recogible con categoria asignada, recogerlo.
             if (!go.CompareTag("Recogible")) continue;
 
             var recogible = go.GetComponent<ObjetoRecogible>();
@@ -749,5 +783,14 @@ public class Inventario : MonoBehaviour
         if (rec == null) return;
         rec.esRecogido = false;
         rec.player = null;
+    }
+
+    string NombreLimpioObjeto(GameObject obj)
+    {
+        if (obj == null) return string.Empty;
+        string n = obj.name ?? string.Empty;
+        int idx = n.IndexOf("(Clone)");
+        if (idx >= 0) n = n.Substring(0, idx);
+        return n.Trim();
     }
 }
