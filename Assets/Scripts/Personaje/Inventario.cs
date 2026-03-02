@@ -105,6 +105,7 @@ public class Inventario : MonoBehaviour
                     if (cantidades[i] <= 0) cantidades[i] = 1;
                     cantidades[i]++;
                     Debug.Log($"Inventario: acumulada '{objeto.name}' en el slot {i + 1}. Cantidad ahora: {cantidades[i]}.");
+                    MensajeInventario.MostrarMensaje($"Añadida {objeto.name} al inventario (x{cantidades[i]})");
                     // Eliminamos el objeto físico recogido (ya representado en el stack).
                     Destroy(objeto);
                     objeto = null;
@@ -133,6 +134,8 @@ public class Inventario : MonoBehaviour
             cantidades[inventario.Count - 1] = 1;
             Debug.Log($"Inventario: añadido '{objeto.name}' al final (sin huecos libres previos).");
         }
+
+        MensajeInventario.MostrarMensaje($"Añadido {objeto.name} al inventario");
 
         ResetearEstadoRecogible(objeto);
         objeto.SetActive(false);
