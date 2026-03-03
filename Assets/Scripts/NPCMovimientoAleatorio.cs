@@ -320,7 +320,8 @@ public class NPCMovimientoAleatorio : MonoBehaviour
             if (hit.isTrigger) continue;
             int layer = hit.gameObject.layer;
             if (((1 << layer) & _effectiveMapLayers) != 0) continue;
-            if (hit.GetComponent<MovimientoPorCeldas>() != null)
+            if (hit.GetComponent<MovimientoPorCeldas>() != null
+                || hit.GetComponent<NPCMovimientoAleatorio>() != null)
                 return true;
         }
         return false;

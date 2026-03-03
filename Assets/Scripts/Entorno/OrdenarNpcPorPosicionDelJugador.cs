@@ -1,65 +1,42 @@
 using UnityEngine;
 
 /// <summary>
-/// Ordena un NPC (como el conejo) por delante o por detrás del jugador
-/// según si el jugador está en la casilla inferior o en la misma/superior.
-/// Pensado para personajes que comparten la misma lógica de profundidad que
-/// la hierba/arbustos, pero aplicados al propio SpriteRenderer del NPC.
+/// Sorting basado en Y para NPCs y criaturas.
+/// Usa la misma fórmula que OrdenarPorPosicionDelJugador y MovimientoPorCeldas:
+///   sortingOrder = -RoundToInt(yBase * precision)
+/// Esto garantiza orden correcto contra jugador, arbustos y otros NPCs sin
+/// necesidad de referenciar a ninguna entidad concreta.
 /// </summary>
 [RequireComponent(typeof(SpriteRenderer))]
 public class OrdenarNpcPorPosicionDelJugador : MonoBehaviour
 {
-    [Header("Referencias")]
-    [SerializeField] private MovimientoPorCeldas jugadorMovimiento;
-    [SerializeField] private SpriteRenderer jugadorRenderer;
+    [Header("Profundidad Y")]
+    [Tooltip("Multiplicador de precisión (debe coincidir con el resto de entidades, normalmente 100).")]
+    [SerializeField] private int precisionOrden = 100;
+    [Tooltip("Offset manual al sortingOrder (positivo = más al frente).")]
+    [SerializeField] private int offsetOrden = 0;
+    [Tooltip("Usa el centro del bounds del sprite (recomendado para NPCs cuyo pivot no coincide con el centro visual).")]
+    [SerializeField] private bool usarCentroSprite = true;
 
-    [Header("Parámetros de celda")]
-    [Tooltip("Tamaño de una casilla en unidades de mundo (debería coincidir con cellSize de MovimientoPorCeldas, normalmente 1).")]
-    [SerializeField] private float cellSize = 1f;
-    [Tooltip("Tolerancia vertical para considerar que el jugador está en la casilla inferior (en unidades de mundo).")]
-    [SerializeField] private float toleranciaMismaFila = 0.01f;
+    // Legacy fields: se mantienen para no romper la serialización.
+    [HideInInspector] [SerializeField] private MovimientoPorCeldas jugadorMovimiento;
+    [HideInInspector] [SerializeField] private SpriteRenderer jugadorRenderer;
+    [HideInInspector] [SerializeField] private float cellSize = 1f;
+    [HideInInspector] [SerializeField] private float toleranciaMismaFila = 0.01f;
 
     private SpriteRenderer _sr;
 
     void Awake()
     {
         _sr = GetComponent<SpriteRenderer>();
-
-        if (jugadorMovimiento == null)
-            jugadorMovimiento = FindObjectOfType<MovimientoPorCeldas>();
-
-        if (jugadorMovimiento != null && jugadorRenderer == null)
-            jugadorRenderer = jugadorMovimiento.GetComponentInChildren<SpriteRenderer>();
     }
 
     void LateUpdate()
     {
-        if (_sr == null || jugadorMovimiento == null || jugadorRenderer == null) return;
+        if (_sr == null) return;
 
-        // Celda actual del jugador usando la misma lógica de grid que el personaje.
-        Vector2 celdaJugador = jugadorMovimiento.GetPosicionCeldaActual();
-        float yJugador = celdaJugador.y;
-
-        // Casilla de referencia del NPC.
-        // Usamos el centro vertical del sprite, que se alinea mejor con la celda
-        // con la que camina el conejo (NPCMovimientoAleatorio centra el sprite en la celda).
-        float yBaseNpc = _sr.bounds.center.y;
-
-        int offset;
-
-        // Jugador en casilla INFERIOR (Y menor) -> NPC por DEBAJO del jugador.
-        if (yJugador < yBaseNpc - toleranciaMismaFila)
-        {
-            offset = -1;
-        }
-        else
-        {
-            // Misma casilla (dentro de la tolerancia) o casilla SUPERIOR -> NPC por ENCIMA del jugador.
-            offset = +1;
-        }
-
-        _sr.sortingLayerID = jugadorRenderer.sortingLayerID;
-        _sr.sortingOrder = jugadorRenderer.sortingOrder + offset;
+        float yBase = usarCentroSprite ? _sr.bounds.center.y : transform.position.y;
+        _sr.sortingOrder = -Mathf.RoundToInt(yBase * precisionOrden) + offsetOrden;
     }
 }
 

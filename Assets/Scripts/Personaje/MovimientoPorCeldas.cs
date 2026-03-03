@@ -86,6 +86,11 @@ public class MovimientoPorCeldas : MonoBehaviour
     private bool _attackQueued;
     private Transform _manoOTool;
 
+    // --- Profundidad Y (sorting basado en posición) ---
+    private const int PrecisionOrdenY = 100;
+    private SpriteRenderer[] _sortRenderers;
+    private int[] _sortOffsets;
+
     // Hashes de estados de ataque del BaseAnimator (Base Layer) para detectar cuándo la animación ha terminado
     private static readonly int HashAtacarAP = Animator.StringToHash("Base Layer.Atacar AP");
     private static readonly int HashAtacarPA = Animator.StringToHash("Base Layer.Atacar PA");
@@ -183,6 +188,16 @@ public class MovimientoPorCeldas : MonoBehaviour
         }
 
         ActualizarOrientacionYGizmo();
+        InicializarSortingProfundidad();
+    }
+
+    void InicializarSortingProfundidad()
+    {
+        _sortRenderers = GetComponentsInChildren<SpriteRenderer>(true);
+        _sortOffsets = new int[_sortRenderers.Length];
+        int refOrder = _sortRenderers.Length > 0 ? _sortRenderers[0].sortingOrder : 0;
+        for (int i = 0; i < _sortRenderers.Length; i++)
+            _sortOffsets[i] = _sortRenderers[i].sortingOrder - refOrder;
     }
 
     void FixedUpdate()
@@ -262,6 +277,11 @@ public class MovimientoPorCeldas : MonoBehaviour
 
     void LateUpdate()
     {
+        if (_sortRenderers == null) return;
+        int baseOrder = -Mathf.RoundToInt(transform.position.y * PrecisionOrdenY);
+        for (int i = 0; i < _sortRenderers.Length; i++)
+            if (_sortRenderers[i] != null)
+                _sortRenderers[i].sortingOrder = baseOrder + _sortOffsets[i];
     }
 
     /// <summary>
@@ -654,6 +674,29 @@ public class MovimientoPorCeldas : MonoBehaviour
         animatorsHijos = GetComponentsInChildren<Animator>();
         animator = GetComponent<Animator>();
         if (animator == null) animator = GetComponentInChildren<Animator>();
+        RefrescarSortingProfundidad();
+    }
+
+    void RefrescarSortingProfundidad()
+    {
+        var nuevos = GetComponentsInChildren<SpriteRenderer>(true);
+        var offsetsNuevos = new int[nuevos.Length];
+        for (int i = 0; i < nuevos.Length; i++)
+        {
+            bool encontrado = false;
+            if (_sortRenderers != null)
+                for (int j = 0; j < _sortRenderers.Length; j++)
+                    if (_sortRenderers[j] == nuevos[i])
+                    {
+                        offsetsNuevos[i] = _sortOffsets[j];
+                        encontrado = true;
+                        break;
+                    }
+            if (!encontrado)
+                offsetsNuevos[i] = 0;
+        }
+        _sortRenderers = nuevos;
+        _sortOffsets = offsetsNuevos;
     }
 
     /// <summary>

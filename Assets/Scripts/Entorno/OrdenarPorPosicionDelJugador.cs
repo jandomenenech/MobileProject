@@ -1,20 +1,14 @@
 using UnityEngine;
 
 /// <summary>
-/// Hace que este SpriteRenderer se ordene por delante o por detrás del jugador
-/// según si el jugador está en la misma / casilla superior o en la casilla inferior.
-/// Pensado para arbustos, hierba alta, etc.
+/// Sorting basado en Y (profundidad): Y más bajo = sortingOrder más alto = se renderiza delante.
+/// Funciona universalmente contra jugador, NPCs y cualquier otra entidad con el mismo sistema.
+/// Opcionalmente cambia el sprite cuando el jugador pisa la misma casilla (para arbustos, hierba, etc.).
 /// </summary>
 [RequireComponent(typeof(SpriteRenderer))]
 public class OrdenarPorPosicionDelJugador : MonoBehaviour
 {
-    [Header("Referencias")]
-    [SerializeField] private Transform jugador;
-    [SerializeField] private SpriteRenderer jugadorRenderer;
-    [Tooltip("Componente MovimientoPorCeldas del jugador (se busca automáticamente si se deja vacío).")]
-    [SerializeField] private MovimientoPorCeldas movimientoJugador;
-
-    [Header("Sprites según celda")]
+    [Header("Sprites según celda (solo jugador)")]
     [Tooltip("Sprite por defecto (cuando el jugador NO está en la misma casilla base). Si se deja vacío se usa el sprite inicial.")]
     [SerializeField] private Sprite spritePorDefecto;
     [Tooltip("Sprite cuando el jugador está en la MISMA casilla base que esta hierba.")]
@@ -23,9 +17,6 @@ public class OrdenarPorPosicionDelJugador : MonoBehaviour
     [Header("Celda de referencia de este objeto")]
     [Tooltip("Si está activo (por defecto), usa siempre la posición actual del objeto. Al duplicar, cada copia funcionará correctamente.")]
     [SerializeField] private bool usarPosicionActual = true;
-    [Tooltip("Usa el centro del bounds del SpriteRenderer en vez de transform.position. Útil para sprites cuyo pivot no coincide con el centro visual (ej. NPCs con offset).")]
-    [SerializeField] private bool usarCentroSprite = false;
-    [Tooltip("Posición del pivot del sprite (solo se usa si 'Usar posición actual' está desactivado).")]
     [SerializeField] private Vector2 centroCelda = Vector2.zero;
     [Tooltip("Altura del sprite medida en número de casillas (1 = ocupa una casilla de alto, 2 = dos casillas, etc.).")]
     [SerializeField] private int alturaEnCeldas = 1;
@@ -34,17 +25,24 @@ public class OrdenarPorPosicionDelJugador : MonoBehaviour
     [Tooltip("Tolerancia vertical para considerar que jugador y hierba están en la misma casilla (en unidades de mundo).")]
     [SerializeField] private float toleranciaMismaFila = 0.01f;
 
-    [Header("Offsets de orden respecto al jugador")]
-    [Tooltip("Cuánto se suma al sortingOrder del jugador cuando está en la MISMA casilla o por ENCIMA (el jugador debe quedar DETRÁS).")]
-    [SerializeField] private int offsetCuandoJugadorArribaOMisma = +1;
+    [Header("Profundidad Y")]
+    [Tooltip("Multiplicador de precisión. Con 100, cada unidad Y da 100 valores de sortingOrder.")]
+    [SerializeField] private int precisionOrden = 100;
+    [Tooltip("Offset manual al sortingOrder (positivo = más al frente).")]
+    [SerializeField] private int offsetOrden = 0;
 
-    [Tooltip("Cuánto se suma al sortingOrder del jugador cuando está en la casilla INFERIOR (el jugador debe quedar DELANTE).")]
-    [SerializeField] private int offsetCuandoJugadorAbajo = -1;
+    // Legacy fields: se mantienen para no romper la serialización de escenas existentes.
+    [HideInInspector] [SerializeField] private Transform jugador;
+    [HideInInspector] [SerializeField] private SpriteRenderer jugadorRenderer;
+    [HideInInspector] [SerializeField] private int offsetCuandoJugadorArribaOMisma = +1;
+    [HideInInspector] [SerializeField] private int offsetCuandoJugadorAbajo = -1;
+    [HideInInspector] [SerializeField] private bool usarCentroSprite = false;
 
+    private MovimientoPorCeldas _movimientoJugador;
     private SpriteRenderer _sr;
     private bool _estaEnMismaCelda;
 
-    void Reset()
+    void Awake()
     {
         _sr = GetComponent<SpriteRenderer>();
         if (spritePorDefecto == null && _sr != null)
@@ -53,116 +51,47 @@ public class OrdenarPorPosicionDelJugador : MonoBehaviour
         if (centroCelda == Vector2.zero)
             centroCelda = transform.position;
 
-        if (jugador == null)
-        {
-            movimientoJugador = FindObjectOfType<MovimientoPorCeldas>();
-            if (movimientoJugador != null) jugador = movimientoJugador.transform;
-        }
-        if (jugador != null && jugadorRenderer == null)
-            jugadorRenderer = jugador.GetComponentInChildren<SpriteRenderer>();
-    }
-
-    void Awake()
-    {
-        if (_sr == null) _sr = GetComponent<SpriteRenderer>();
-        if (spritePorDefecto == null && _sr != null)
-            spritePorDefecto = _sr.sprite;
-
-        if (centroCelda == Vector2.zero)
-            centroCelda = transform.position;
-
-        if (jugador == null || movimientoJugador == null)
-        {
-            movimientoJugador = FindObjectOfType<MovimientoPorCeldas>();
-            if (movimientoJugador != null)
-                jugador = movimientoJugador.transform;
-        }
-
-        if (jugador != null && jugadorRenderer == null)
-            jugadorRenderer = jugador.GetComponentInChildren<SpriteRenderer>();
+        _movimientoJugador = FindObjectOfType<MovimientoPorCeldas>();
+        if (_movimientoJugador != null && jugadorRenderer == null)
+            jugadorRenderer = _movimientoJugador.GetComponentInChildren<SpriteRenderer>();
     }
 
     void LateUpdate()
     {
         if (_sr == null) return;
 
-        // Obtenemos la Y de la celda ACTUAL del jugador usando el mismo sistema que el movimiento por celdas.
-        float yJugador;
-        Vector2 celdaJugador;
-        if (movimientoJugador != null)
-        {
-            celdaJugador = movimientoJugador.GetPosicionCeldaActual();
-            yJugador = celdaJugador.y;
-        }
-        else if (jugador != null)
-        {
-            celdaJugador = jugador.position;
-            yJugador = celdaJugador.y;
-        }
-        else
-        {
-            return;
-        }
-
-        // Calculamos la Y de la CASILLA BASE de esta hierba.
-        // Si el sprite mide varias casillas de alto y el pivot está centrado,
-        // la casilla base está por debajo del pivot.
-        // Usar siempre transform.position cuando usarPosicionActual=true evita
-        // que los duplicados hereden un centroCelda incorrecto del objeto original.
         Vector2 centro = usarPosicionActual ? (Vector2)transform.position : centroCelda;
         float yBaseHierba = centro.y;
         if (alturaEnCeldas > 1)
-        {
-            // Ejemplo: alturaEnCeldas = 2 => desplazamiento = 0.5 * cellSize hacia abajo.
-            float desplazamiento = (alturaEnCeldas - 1) * 0.5f * cellSize;
-            yBaseHierba -= desplazamiento;
-        }
+            yBaseHierba -= (alturaEnCeldas - 1) * 0.5f * cellSize;
 
-        int offset;
-
-        // Jugador en casilla INFERIOR (Y menor) -> hierba por DEBAJO del jugador.
-        if (yJugador < yBaseHierba - toleranciaMismaFila)
-        {
-            offset = offsetCuandoJugadorAbajo;
-        }
-        else
-        {
-            // Misma casilla (dentro de la tolerancia) o casilla SUPERIOR -> hierba por ENCIMA del jugador.
-            offset = offsetCuandoJugadorArribaOMisma;
-        }
-
-        // Aseguramos que usamos la misma sorting layer que el jugador, si la tenemos
+        // Forzar a usar la misma Sorting Layer que el jugador, como antes,
+        // para que no cambie el comportamiento respecto a otros layers del escenario.
+        if (_movimientoJugador != null && jugadorRenderer == null)
+            jugadorRenderer = _movimientoJugador.GetComponentInChildren<SpriteRenderer>();
         if (jugadorRenderer != null)
-        {
             _sr.sortingLayerID = jugadorRenderer.sortingLayerID;
-            _sr.sortingOrder = jugadorRenderer.sortingOrder + offset;
-        }
-        else
-        {
-            // Si no hay referencia al renderer del jugador, al menos aplicamos el offset sobre nuestro propio order
-            _sr.sortingOrder = offset;
-        }
 
-        // --- Cambio de sprite según si el jugador está en la MISMA casilla base ---
-        if (spriteJugadorEnMismaCelda != null)
-        {
-            // Consideramos misma casilla base si la posición de celda del jugador coincide en X
-            // con el centro de la hierba y en Y con la casilla base, dentro de una pequeña tolerancia.
-            bool mismaCelda =
-                Mathf.Abs(celdaJugador.x - centro.x) <= cellSize * 0.1f &&
-                Mathf.Abs(celdaJugador.y - yBaseHierba) <= toleranciaMismaFila;
+        _sr.sortingOrder = -Mathf.RoundToInt(yBaseHierba * precisionOrden) + offsetOrden;
 
-            if (mismaCelda && !_estaEnMismaCelda)
-            {
-                _estaEnMismaCelda = true;
-                _sr.sprite = spriteJugadorEnMismaCelda;
-            }
-            else if (!mismaCelda && _estaEnMismaCelda)
-            {
-                _estaEnMismaCelda = false;
-                if (spritePorDefecto != null)
-                    _sr.sprite = spritePorDefecto;
-            }
+        // --- Cambio de sprite cuando el JUGADOR pisa la misma casilla base ---
+        if (spriteJugadorEnMismaCelda == null || _movimientoJugador == null) return;
+
+        Vector2 celdaJugador = _movimientoJugador.GetPosicionCeldaActual();
+        bool mismaCelda =
+            Mathf.Abs(celdaJugador.x - centro.x) <= cellSize * 0.1f &&
+            Mathf.Abs(celdaJugador.y - yBaseHierba) <= toleranciaMismaFila;
+
+        if (mismaCelda && !_estaEnMismaCelda)
+        {
+            _estaEnMismaCelda = true;
+            _sr.sprite = spriteJugadorEnMismaCelda;
+        }
+        else if (!mismaCelda && _estaEnMismaCelda)
+        {
+            _estaEnMismaCelda = false;
+            if (spritePorDefecto != null)
+                _sr.sprite = spritePorDefecto;
         }
     }
 }

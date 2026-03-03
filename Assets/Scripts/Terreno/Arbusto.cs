@@ -39,6 +39,11 @@ public class Arbusto : MonoBehaviour
         }
     }
 
+    void LateUpdate()
+    {
+        SincronizarOrdenFrutosConArbusto();
+    }
+
     void Update()
     {
         if (!destruido || efectoCorteRamas == null || !efectoCorteRamas.activeInHierarchy)
@@ -119,5 +124,16 @@ public class Arbusto : MonoBehaviour
                 efectoCorteRamas.SetActive(true);
             }
         }
+    }
+
+    private void SincronizarOrdenFrutosConArbusto()
+    {
+        if (arbusto == null || frutosVisual == null) return;
+
+        var srFrutos = frutosVisual.GetComponent<SpriteRenderer>();
+        if (srFrutos == null) return;
+
+        srFrutos.sortingLayerID = arbusto.sortingLayerID;
+        srFrutos.sortingOrder = arbusto.sortingOrder + 1;
     }
 }
