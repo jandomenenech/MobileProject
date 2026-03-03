@@ -44,14 +44,21 @@ public class NPCMovimientoAleatorio : MonoBehaviour
     private const string EstadoPA = "Conejo Caminar PA";
     private const string EstadoPerfil = "Conejo Caminar Perfil";
 
+    [Header("Efecto de impacto")]
+    [Tooltip("Color del flash al recibir un golpe (rojo semi-transparente por defecto).")]
+    [SerializeField] private Color colorImpacto = new Color(1f, 0f, 0f, 0.6f);
+    [Tooltip("Duración del flash en segundos.")]
+    [SerializeField] private float duracionFlash = 0.7f;
+
     private Vector2 targetPosition;
     private Vector2 _moveStartPosition;
-    private Vector2 _offsetCentroSprite; // offset desde transform hasta centro visual del sprite (celda del medio 3x5)
-    private float _worldCellSize;       // tamaño de una celda en mundo (del Grid si hay, si no cellSize)
+    private Vector2 _offsetCentroSprite;
+    private float _worldCellSize;
     private Rigidbody2D _rb;
     private Vector2 _lastDirection = Vector2.down;
     private bool _isMoving;
     private float _moveStartTime;
+    private Coroutine _flashCoroutine;
 
     private void Start()
     {
@@ -325,5 +332,44 @@ public class NPCMovimientoAleatorio : MonoBehaviour
                 return true;
         }
         return false;
+    }
+
+    /// <summary>
+    /// Aplica un flash de color al NPC. Llamar desde el sistema de ataque al golpearlo.
+    /// </summary>
+    public void RecibirImpacto()
+    {
+        if (_flashCoroutine != null)
+            StopCoroutine(_flashCoroutine);
+        _flashCoroutine = StartCoroutine(FlashImpacto());
+    }
+
+    private IEnumerator FlashImpacto()
+    {
+        var renderers = GetComponentsInChildren<SpriteRenderer>(true);
+        var coloresOriginales = new Color[renderers.Length];
+        for (int i = 0; i < renderers.Length; i++)
+            coloresOriginales[i] = renderers[i].color;
+
+        Color tinte = colorImpacto;
+        foreach (var sr in renderers)
+            sr.color = tinte;
+
+        float timer = 0f;
+        while (timer < duracionFlash)
+        {
+            timer += Time.deltaTime;
+            float t = timer / duracionFlash;
+            for (int i = 0; i < renderers.Length; i++)
+                if (renderers[i] != null)
+                    renderers[i].color = Color.Lerp(tinte, coloresOriginales[i], t);
+            yield return null;
+        }
+
+        for (int i = 0; i < renderers.Length; i++)
+            if (renderers[i] != null)
+                renderers[i].color = coloresOriginales[i];
+
+        _flashCoroutine = null;
     }
 }

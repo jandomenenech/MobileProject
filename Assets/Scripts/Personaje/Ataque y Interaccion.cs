@@ -14,6 +14,12 @@ public class AtaqueyInteraccion : MonoBehaviour
     [SerializeField] public float timeIdle;
     [SerializeField] private MovimientoPorCeldas move;
 
+    [Header("Sangre al golpear criaturas")]
+    [Tooltip("Prefabs de charcos de sangre que se instanciarán en la celda del NPC golpeado (puedes asignar uno o varios).")]
+    [SerializeField] private GameObject[] sangreCharcoPrefabs;
+    [Tooltip("Offset opcional desde el centro del collider del NPC.")]
+    [SerializeField] private Vector2 sangreOffset = Vector2.zero;
+
     private void Start()
     {
         animator = GetComponent<Animator>();
@@ -44,9 +50,26 @@ public class AtaqueyInteraccion : MonoBehaviour
         Collider2D[] objeto = Physics2D.OverlapBoxAll(celdaAtacada, boxSize, 0f);
         foreach (Collider2D collision in objeto)
         {
-            if (!collision.CompareTag("Arbusto")) continue;
-            collision.transform.GetComponent<Arbusto>().cortarArbusto();
-            Debug.Log("Tocado");
+            if (collision == null) continue;
+
+            // Arbustos
+            if (collision.CompareTag("Arbusto"))
+            {
+                var a = collision.GetComponent<Arbusto>();
+                if (a != null)
+                {
+                    a.cortarArbusto();
+                    Debug.Log("Arbusto golpeado");
+                }
+            }
+
+            // Criaturas/NPCs (conejo u otros que usen NPCMovimientoAleatorio)
+            var npc = collision.GetComponent<NPCMovimientoAleatorio>();
+            if (npc != null)
+            {
+                npc.RecibirImpacto();
+                CrearCharcoSangre(collision);
+            }
         }
     }
     private void OnDrawGizmos()
@@ -78,5 +101,18 @@ public class AtaqueyInteraccion : MonoBehaviour
     public void detectarAtaque()
     {
         Attack();
+    }
+
+    private void CrearCharcoSangre(Collider2D objetivo)
+    {
+        if (sangreCharcoPrefabs == null || sangreCharcoPrefabs.Length == 0) return;
+        if (objetivo == null) return;
+
+        Vector2 pos = (Vector2)objetivo.bounds.center + sangreOffset;
+        int index = Random.Range(0, sangreCharcoPrefabs.Length);
+        GameObject prefab = sangreCharcoPrefabs[index];
+        if (prefab == null) return;
+
+        Instantiate(prefab, pos, Quaternion.identity);
     }
 }
