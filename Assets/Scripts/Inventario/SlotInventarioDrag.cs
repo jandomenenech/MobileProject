@@ -92,7 +92,8 @@ public class SlotInventarioDrag : MonoBehaviour, IBeginDragHandler, IDragHandler
             {
                 var targetSlot = eventData.pointerCurrentRaycast.gameObject.GetComponent<SlotInventarioDrag>();
                 var targetBaul = eventData.pointerCurrentRaycast.gameObject.GetComponent<SlotBaulDrag>();
-                if ((targetSlot != null && targetSlot != this) || targetBaul != null)
+                var targetCadaver = eventData.pointerCurrentRaycast.gameObject.GetComponent<SlotCadaverDrag>();
+                if ((targetSlot != null && targetSlot != this) || targetBaul != null || targetCadaver != null)
                     soltadoEnOtroSlot = true;
             }
             if (!soltadoEnOtroSlot && Inv != null)
@@ -111,10 +112,16 @@ public class SlotInventarioDrag : MonoBehaviour, IBeginDragHandler, IDragHandler
         var origenSlot = eventData.pointerDrag.GetComponent<SlotInventarioDrag>();
         var origenArmadura = eventData.pointerDrag.GetComponent<SlotArmaduraDrop>();
         var origenBaul = eventData.pointerDrag.GetComponent<SlotBaulDrag>();
+        var origenCadaver = eventData.pointerDrag.GetComponent<SlotCadaverDrag>();
 
         if (origenArmadura != null && Inv != null)
         {
             Inv.MoverArmaduraAGridSlot(slotIndex);
+            return;
+        }
+        if (origenCadaver != null && Inv != null && Inv.CadaverAbierto != null)
+        {
+            Inv.RecibirItemDesdeCadaver(Inv.CadaverAbierto, origenCadaver.slotIndex, slotIndex);
             return;
         }
         if (origenBaul != null && Inv != null && Inv.BaulAbierto != null)

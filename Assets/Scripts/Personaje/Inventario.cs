@@ -33,9 +33,13 @@ public class Inventario : MonoBehaviour
 
     public bool isActive = false;
 
-    [Header("Ba�l")]
-    [Tooltip("Ba�l cuyo inventario est� abierto (null si ninguno).")]
+    [Header("Baúl")]
+    [Tooltip("Baúl cuyo inventario está abierto (null si ninguno).")]
     [HideInInspector] public BaulInteractuable BaulAbierto;
+
+    [Header("Cadáver")]
+    [Tooltip("Cadáver cuyo inventario está abierto (null si ninguno).")]
+    [HideInInspector] public CadaverInteractuable CadaverAbierto;
 
     void Start()
     {
@@ -243,12 +247,62 @@ public class Inventario : MonoBehaviour
                     BaulAbierto.Cerrar();
                     BaulAbierto = null;
                 }
+                if (CadaverAbierto != null)
+                {
+                    if (CadaverAbierto.panelInventarioCadaver != null)
+                        CadaverAbierto.panelInventarioCadaver.SetActive(false);
+                    CadaverAbierto.Cerrar();
+                    CadaverAbierto = null;
+                }
             }
         }
     }
 
     /// <summary>
-    /// Abre el inventario del personaje y el panel del ba�l. Llamado por BaulInteractuable.Abrir().
+    /// Abre el inventario del personaje y el panel del cadáver. Llamado por CadaverInteractuable.Abrir().
+    /// </summary>
+    public void AbrirInventarioConCadaver(CadaverInteractuable cadaver)
+    {
+        if (cadaver == null) return;
+
+        GameObject panelCadaver = cadaver.panelInventarioCadaver;
+        if (panelCadaver == null)
+        {
+            // Intentamos primero por nombre exacto (solo activos)
+            panelCadaver = GameObject.Find("Inventario Cadáver");
+
+            // Si no existe o está desactivado, buscamos entre todos los objetos (incluyendo inactivos)
+            if (panelCadaver == null)
+            {
+                var invCadavers = Resources.FindObjectsOfTypeAll<InventarioCadaverGrafico>();
+                if (invCadavers != null && invCadavers.Length > 0 && invCadavers[0] != null)
+                    panelCadaver = invCadavers[0].gameObject;
+            }
+
+            if (panelCadaver != null)
+                cadaver.panelInventarioCadaver = panelCadaver;
+            else
+                Debug.LogWarning("Inventario: no se encontró ningún panel de Inventario Cadáver en la escena. Añade un objeto con InventarioCadaverGrafico.");
+        }
+
+        CadaverAbierto = cadaver;
+        BaulAbierto = null;
+        isActive = true;
+        inventarioGrafico.SetActive(true);
+        inv.imagenesInventario();
+
+        if (panelCadaver != null)
+        {
+            panelCadaver.SetActive(true);
+            panelCadaver.transform.SetAsLastSibling();
+            var invCadaver = panelCadaver.GetComponent<InventarioCadaverGrafico>();
+            if (invCadaver != null)
+                invCadaver.Refrescar();
+        }
+    }
+
+    /// <summary>
+    /// Abre el inventario del personaje y el panel del baúl. Llamado por BaulInteractuable.Abrir().
     /// </summary>
     public void AbrirInventarioConBaul(BaulInteractuable baul)
     {
@@ -265,6 +319,7 @@ public class Inventario : MonoBehaviour
         }
 
         BaulAbierto = baul;
+        CadaverAbierto = null;
         isActive = true;
         inventarioGrafico.SetActive(true);
         inv.imagenesInventario();
@@ -307,7 +362,88 @@ public class Inventario : MonoBehaviour
     }
 
     /// <summary>
-    /// Mueve un objeto del inventario del jugador al slot del ba�l (intercambio si el slot tiene objeto).
+    /// Mueve un objeto del cadáver al slot del jugador (intercambio si el slot tiene objeto).
+    /// </summary>
+    public void RecibirItemDesdeCadaver(CadaverInteractuable cadaver, int slotCadaver, int slotJugador)
+    {
+        if (cadaver == null || inventario == null || slotJugador < 0 || slotJugador >= inventario.Count) return;
+
+        int cantidadCadaver = cadaver.GetCantidad(slotCadaver);
+        int cantidadJugador = GetCantidadEnSlot(slotJugador);
+
+        GameObject itemCadaver = cadaver.GetContenido(slotCadaver);
+        GameObject itemJugador = inventario[slotJugador];
+        cadaver.SetContenido(slotCadaver, itemJugador);
+        inventario[slotJugador] = itemCadaver;
+
+        AsegurarTamanioCantidades();
+        cantidades[slotJugador] = cantidadCadaver;
+        cadaver.SetCantidad(slotCadaver, cantidadJugador);
+
+        if (inv != null) inv.imagenesInventario();
+        if (cadaver.panelInventarioCadaver != null)
+        {
+            var invCadaver = cadaver.panelInventarioCadaver.GetComponent<InventarioCadaverGrafico>();
+            if (invCadaver != null) invCadaver.Refrescar();
+        }
+    }
+
+    /// <summary>
+    /// Mueve un objeto del inventario del jugador al slot del cadáver (intercambio si el slot tiene objeto).
+    /// </summary>
+    public void EnviarItemAlCadaver(CadaverInteractuable cadaver, int slotJugador, int slotCadaver)
+    {
+        if (cadaver == null || inventario == null || slotJugador < 0 || slotJugador >= inventario.Count) return;
+        GameObject itemJugador = inventario[slotJugador];
+        if (itemJugador == null) return;
+
+        if (ObjetoRecogible.EsArma(itemJugador) && tieneArmaEquipada)
+            DesequiparArma();
+        if (slotArmadura == itemJugador)
+        {
+            DesequiparArmadura();
+            slotArmadura = null;
+        }
+
+        int cantidadJugador = GetCantidadEnSlot(slotJugador);
+        int cantidadCadaver = cadaver.GetCantidad(slotCadaver);
+
+        GameObject itemCadaver = cadaver.GetContenido(slotCadaver);
+        inventario[slotJugador] = itemCadaver;
+        cadaver.SetContenido(slotCadaver, itemJugador);
+
+        AsegurarTamanioCantidades();
+        cantidades[slotJugador] = cantidadCadaver;
+        cadaver.SetCantidad(slotCadaver, cantidadJugador);
+        if (inv != null) inv.imagenesInventario();
+        if (cadaver.panelInventarioCadaver != null)
+        {
+            var invCadaver = cadaver.panelInventarioCadaver.GetComponent<InventarioCadaverGrafico>();
+            if (invCadaver != null) invCadaver.Refrescar();
+        }
+    }
+
+    /// <summary>Mueve la armadura del slot armadura al cadáver.</summary>
+    public void EnviarArmaduraAlCadaver(CadaverInteractuable cadaver, int slotCadaver)
+    {
+        if (cadaver == null || slotArmadura == null) return;
+        GameObject itemCadaver = cadaver.GetContenido(slotCadaver);
+        cadaver.SetContenido(slotCadaver, slotArmadura);
+        slotArmadura = itemCadaver;
+        if (slotArmadura != null)
+            EquiparArmadura(slotArmadura);
+        else
+            DesequiparArmadura();
+        if (inv != null) inv.imagenesInventario();
+        if (cadaver.panelInventarioCadaver != null)
+        {
+            var invCadaver = cadaver.panelInventarioCadaver.GetComponent<InventarioCadaverGrafico>();
+            if (invCadaver != null) invCadaver.Refrescar();
+        }
+    }
+
+    /// <summary>
+    /// Mueve un objeto del inventario del jugador al slot del baúl (intercambio si el slot tiene objeto).
     /// </summary>
     public void EnviarItemAlBaul(BaulInteractuable baul, int slotJugador, int slotBaul)
     {
@@ -380,6 +516,15 @@ public class Inventario : MonoBehaviour
             return;
         }
 
+        if (isActive && CadaverAbierto != null)
+        {
+            if (CadaverAbierto.panelInventarioCadaver != null)
+                CadaverAbierto.panelInventarioCadaver.SetActive(false);
+            CadaverAbierto.Cerrar();
+            CadaverAbierto = null;
+            return;
+        }
+
         if (isActive) return;
 
         MovimientoPorCeldas move = GetComponent<MovimientoPorCeldas>();
@@ -430,7 +575,21 @@ public class Inventario : MonoBehaviour
                 continue;
             }
 
-            // 2) Si es un baúl interactuable, abrirlo (solo desde la casilla inferior mirándolo).
+            // 2) Si es un cadáver interactuable, abrirlo (celda adyacente mirándolo).
+            var cadaver = go.GetComponent<CadaverInteractuable>();
+            if (cadaver != null)
+            {
+                Vector2 celdaJugador = move.GetPosicionCeldaActual();
+                Vector2 celdaEnfrente = celdaJugador + dir * cellSize;
+                if (Vector2.Distance((Vector2)go.transform.position, celdaEnfrente) <= 0.5f)
+                {
+                    cadaver.Abrir();
+                    return;
+                }
+                continue;
+            }
+
+            // 3) Si es un baúl interactuable, abrirlo (solo desde la casilla inferior mirándolo).
             var baul = go.GetComponent<BaulInteractuable>();
             if (baul != null)
             {
@@ -446,7 +605,7 @@ public class Inventario : MonoBehaviour
                 continue;
             }
 
-            // 3) Si es un objeto recogible con categoria asignada, recogerlo
+            // 4) Si es un objeto recogible con categoria asignada, recogerlo
             //    SOLO si está en la celda justo enfrente del jugador.
             if (!go.CompareTag("Recogible")) continue;
 

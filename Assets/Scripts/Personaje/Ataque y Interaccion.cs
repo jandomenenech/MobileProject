@@ -20,6 +20,8 @@ public class AtaqueyInteraccion : MonoBehaviour
     [Tooltip("Offset opcional desde el centro del collider del NPC.")]
     [SerializeField] private Vector2 sangreOffset = Vector2.zero;
 
+    private HashSet<Vector2Int> _celdasConSangre = new HashSet<Vector2Int>();
+
     private void Start()
     {
         animator = GetComponent<Animator>();
@@ -67,7 +69,7 @@ public class AtaqueyInteraccion : MonoBehaviour
             var npc = collision.GetComponent<NPCMovimientoAleatorio>();
             if (npc != null)
             {
-                npc.RecibirImpacto();
+                npc.RecibirDanio(damage);
                 CrearCharcoSangre(collision);
             }
         }
@@ -103,16 +105,27 @@ public class AtaqueyInteraccion : MonoBehaviour
         Attack();
     }
 
+    private Vector2Int PosACelda(Vector2 pos)
+    {
+        return new Vector2Int(Mathf.RoundToInt(pos.x / cellSize), Mathf.RoundToInt(pos.y / cellSize));
+    }
+
     private void CrearCharcoSangre(Collider2D objetivo)
     {
         if (sangreCharcoPrefabs == null || sangreCharcoPrefabs.Length == 0) return;
         if (objetivo == null) return;
 
         Vector2 pos = (Vector2)objetivo.bounds.center + sangreOffset;
+        Vector2Int celda = PosACelda(pos);
+
+        if (_celdasConSangre.Contains(celda))
+            return;
+
         int index = Random.Range(0, sangreCharcoPrefabs.Length);
         GameObject prefab = sangreCharcoPrefabs[index];
         if (prefab == null) return;
 
         Instantiate(prefab, pos, Quaternion.identity);
+        _celdasConSangre.Add(celda);
     }
 }

@@ -1,0 +1,357 @@
+fileFormatVersion: 2
+guid: d0588794012dbdf4381f8a9c6a2fbaf1
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 4870015739623845868
+    second: "Inventario Cad\xE1ver_0"
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 13
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: "Inventario Cad\xE1ver Slot 1"
+      rect:
+        serializedVersion: 2
+        x: 130
+        y: 98
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0d8dd0357568b374cb1689bbc352b142
+      internalID: -356725689
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Cad\xE1ver Slot 2"
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 98
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b8e72a495a01ebe42a5a0ffb24572b27
+      internalID: -105095998
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Cad\xE1ver Slot 3"
+      rect:
+        serializedVersion: 2
+        x: 156
+        y: 98
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5cb8c443712c4bb4ba47904eb07b126f
+      internalID: 1338107706
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Cad\xE1ver Slot 4"
+      rect:
+        serializedVersion: 2
+        x: 169
+        y: 98
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8d612221cacd5d141af1aee5fa00ef09
+      internalID: -1705022322
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Cad\xE1ver Slot 5"
+      rect:
+        serializedVersion: 2
+        x: 182
+        y: 98
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b35f033e860ac42438066c7dfcebed4c
+      internalID: 850628551
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Cad\xE1ver Slot 6"
+      rect:
+        serializedVersion: 2
+        x: 130
+        y: 85
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7f01a75edccc35846b3b7fa6e1bb6d03
+      internalID: -1549481658
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Cad\xE1ver Slot 7"
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 85
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e655431183249a44ca422891d636c077
+      internalID: -1911130017
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Cad\xE1ver Slot 8"
+      rect:
+        serializedVersion: 2
+        x: 156
+        y: 85
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2740564b190236c49b2826309f4246c9
+      internalID: -17331049
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Cad\xE1ver Slot 9"
+      rect:
+        serializedVersion: 2
+        x: 169
+        y: 85
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c38ba6091f98081438720f92cd06a5c0
+      internalID: 236554702
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Inventario Cad\xE1ver Slot 10"
+      rect:
+        serializedVersion: 2
+        x: 182
+        y: 85
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9e32aced0ba847545baff9b5d849b7c5
+      internalID: 1066720265
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: eb5c264479fa16d4196a0f62b970ebd4
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      "Inventario Cad\xE1ver Slot 1": -356725689
+      "Inventario Cad\xE1ver Slot 10": 1066720265
+      "Inventario Cad\xE1ver Slot 2": -105095998
+      "Inventario Cad\xE1ver Slot 3": 1338107706
+      "Inventario Cad\xE1ver Slot 4": -1705022322
+      "Inventario Cad\xE1ver Slot 5": 850628551
+      "Inventario Cad\xE1ver Slot 6": -1549481658
+      "Inventario Cad\xE1ver Slot 7": -1911130017
+      "Inventario Cad\xE1ver Slot 8": -17331049
+      "Inventario Cad\xE1ver Slot 9": 236554702
+      "Inventario Cad\xE1ver_0": 4870015739623845868
+      "Inventario Cad\xE1ver_1": -717962092
+      "Inventario Cad\xE1ver_13": -1371691290
+      "Inventario Cad\xE1ver_14": 1307188396
+      "Inventario Cad\xE1ver_2": 1785461235
+      "Inventario Cad\xE1ver_20": 1941884971
+      "Inventario Cad\xE1ver_21": 2051296556
+      "Inventario Cad\xE1ver_22": -1729397152
+      "Inventario Cad\xE1ver_23": -386870280
+      "Inventario Cad\xE1ver_24": 2134550204
+      "Inventario Cad\xE1ver_25": 906761424
+      "Inventario Cad\xE1ver_26": -1959898274
+      "Inventario Cad\xE1ver_27": -1874664385
+      "Inventario Cad\xE1ver_28": -769139563
+      "Inventario Cad\xE1ver_29": -453235985
+      "Inventario Cad\xE1ver_3": -1044999582
+      "Inventario Cad\xE1ver_4": 1274477643
+      "Inventario Cad\xE1ver_5": -91514813
+      "Inventario Cad\xE1ver_6": 1134331673
+      "Inventario Cad\xE1ver_7": -2113630615
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
