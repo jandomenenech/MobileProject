@@ -33,6 +33,10 @@ public class Inventario : MonoBehaviour
 
     public bool isActive = false;
 
+    [Header("Menús")]
+    [Tooltip("Menú de crafteo que debe abrirse junto con el inventario al pulsar C.")]
+    public GameObject menuCrafteo;
+
     [Header("Baúl")]
     [Tooltip("Baúl cuyo inventario está abierto (null si ninguno).")]
     [HideInInspector] public BaulInteractuable BaulAbierto;
@@ -239,6 +243,8 @@ public class Inventario : MonoBehaviour
             {
                 isActive = false;
                 inventarioGrafico.SetActive(isActive);
+                if (menuCrafteo != null)
+                    menuCrafteo.SetActive(false);
                 inv.imagenesInventario();
                 if (BaulAbierto != null)
                 {
@@ -255,6 +261,23 @@ public class Inventario : MonoBehaviour
                     CadaverAbierto = null;
                 }
             }
+        }
+
+        // Tecla C: abrir/cerrar menú de crafteo junto con el inventario.
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            // Si el inventario no está abierto, abrirlo primero.
+            if (!isActive)
+            {
+                isActive = true;
+                inventarioGrafico.SetActive(true);
+                if (inv != null)
+                    inv.imagenesInventario();
+            }
+
+            // Alternar el menú de crafteo.
+            if (menuCrafteo != null)
+                menuCrafteo.SetActive(!menuCrafteo.activeSelf);
         }
     }
 
@@ -335,23 +358,59 @@ public class Inventario : MonoBehaviour
     }
 
     /// <summary>
-    /// Mueve un objeto del ba�l al slot del jugador (intercambio si el slot tiene objeto).
+    /// Mueve un objeto del baúl al slot del jugador.
+    /// Si el slot del jugador ya contiene un acumulable del mismo tipo, se acumula en lugar de intercambiar.
     /// </summary>
     public void RecibirItemDesdeBaul(BaulInteractuable baul, int slotBaul, int slotJugador)
     {
         if (baul == null || inventario == null || slotJugador < 0 || slotJugador >= inventario.Count) return;
 
-        int cantidadBaul = baul.GetCantidad(slotBaul);
-        int cantidadJugador = GetCantidadEnSlot(slotJugador);
-
         GameObject itemBaul = baul.GetContenido(slotBaul);
+        if (itemBaul == null) return;
+
         GameObject itemJugador = inventario[slotJugador];
+
+        var recBaul = itemBaul.GetComponent<ObjetoRecogible>();
+        var recJugador = itemJugador != null ? itemJugador.GetComponent<ObjetoRecogible>() : null;
+
+        // Caso especial: ambos son acumulables del mismo tipo → acumular en el slot del jugador.
+        if (itemJugador != null &&
+            recBaul != null && recJugador != null &&
+            recBaul.categoria == CategoriaObjeto.Acumulable &&
+            recJugador.categoria == CategoriaObjeto.Acumulable &&
+            recBaul.textura == recJugador.textura)
+        {
+            int cantidadBaul = baul.GetCantidad(slotBaul);
+            int cantidadJugador = GetCantidadEnSlot(slotJugador);
+
+            int suma = Mathf.Max(1, cantidadJugador) + Mathf.Max(1, cantidadBaul);
+
+            AsegurarTamanioCantidades();
+            cantidades[slotJugador] = suma;
+
+            // Vaciar slot del baúl
+            baul.SetContenido(slotBaul, null);
+            baul.SetCantidad(slotBaul, 0);
+
+            if (inv != null) inv.imagenesInventario();
+            if (baul.panelInventarioBaul != null)
+            {
+                var invBaul = baul.panelInventarioBaul.GetComponent<InventarioBaulGrafico>();
+                if (invBaul != null) invBaul.Refrescar();
+            }
+            return;
+        }
+
+        // Comportamiento por defecto: intercambio de objetos entre baúl y jugador.
+        int cantidadBaulDefault = baul.GetCantidad(slotBaul);
+        int cantidadJugadorDefault = GetCantidadEnSlot(slotJugador);
+
         baul.SetContenido(slotBaul, itemJugador);
         inventario[slotJugador] = itemBaul;
 
         AsegurarTamanioCantidades();
-        cantidades[slotJugador] = cantidadBaul;
-        baul.SetCantidad(slotBaul, cantidadJugador);
+        cantidades[slotJugador] = cantidadBaulDefault;
+        baul.SetCantidad(slotBaul, cantidadJugadorDefault);
 
         if (inv != null) inv.imagenesInventario();
         if (baul.panelInventarioBaul != null)
@@ -362,23 +421,59 @@ public class Inventario : MonoBehaviour
     }
 
     /// <summary>
-    /// Mueve un objeto del cadáver al slot del jugador (intercambio si el slot tiene objeto).
+    /// Mueve un objeto del cadáver al slot del jugador.
+    /// Si el slot del jugador ya contiene un acumulable del mismo tipo, se acumula en lugar de intercambiar.
     /// </summary>
     public void RecibirItemDesdeCadaver(CadaverInteractuable cadaver, int slotCadaver, int slotJugador)
     {
         if (cadaver == null || inventario == null || slotJugador < 0 || slotJugador >= inventario.Count) return;
 
-        int cantidadCadaver = cadaver.GetCantidad(slotCadaver);
-        int cantidadJugador = GetCantidadEnSlot(slotJugador);
-
         GameObject itemCadaver = cadaver.GetContenido(slotCadaver);
+        if (itemCadaver == null) return;
+
         GameObject itemJugador = inventario[slotJugador];
+
+        var recCadaver = itemCadaver.GetComponent<ObjetoRecogible>();
+        var recJugador = itemJugador != null ? itemJugador.GetComponent<ObjetoRecogible>() : null;
+
+        // Caso especial: ambos son acumulables del mismo tipo → acumular en el slot del jugador.
+        if (itemJugador != null &&
+            recCadaver != null && recJugador != null &&
+            recCadaver.categoria == CategoriaObjeto.Acumulable &&
+            recJugador.categoria == CategoriaObjeto.Acumulable &&
+            recCadaver.textura == recJugador.textura)
+        {
+            int cantidadCadaver = cadaver.GetCantidad(slotCadaver);
+            int cantidadJugador = GetCantidadEnSlot(slotJugador);
+
+            int suma = Mathf.Max(1, cantidadJugador) + Mathf.Max(1, cantidadCadaver);
+
+            AsegurarTamanioCantidades();
+            cantidades[slotJugador] = suma;
+
+            // Vaciar slot del cadáver
+            cadaver.SetContenido(slotCadaver, null);
+            cadaver.SetCantidad(slotCadaver, 0);
+
+            if (inv != null) inv.imagenesInventario();
+            if (cadaver.panelInventarioCadaver != null)
+            {
+                var invCadaver = cadaver.panelInventarioCadaver.GetComponent<InventarioCadaverGrafico>();
+                if (invCadaver != null) invCadaver.Refrescar();
+            }
+            return;
+        }
+
+        // Comportamiento por defecto: intercambio de objetos entre cadáver y jugador.
+        int cantidadCadaverDefault = cadaver.GetCantidad(slotCadaver);
+        int cantidadJugadorDefault = GetCantidadEnSlot(slotJugador);
+
         cadaver.SetContenido(slotCadaver, itemJugador);
         inventario[slotJugador] = itemCadaver;
 
         AsegurarTamanioCantidades();
-        cantidades[slotJugador] = cantidadCadaver;
-        cadaver.SetCantidad(slotCadaver, cantidadJugador);
+        cantidades[slotJugador] = cantidadCadaverDefault;
+        cadaver.SetCantidad(slotCadaver, cantidadJugadorDefault);
 
         if (inv != null) inv.imagenesInventario();
         if (cadaver.panelInventarioCadaver != null)
@@ -919,6 +1014,14 @@ public class Inventario : MonoBehaviour
         int c = cantidades[index];
         if (c <= 0 && inventario[index] != null) return 1;
         return c;
+    }
+
+    public void SetCantidadEnSlot(int index, int valor)
+    {
+        if (index < 0) return;
+        AsegurarTamanioCantidades();
+        if (index < cantidades.Count)
+            cantidades[index] = Mathf.Max(0, valor);
     }
 
     void ResetearEstadoRecogible(GameObject obj)

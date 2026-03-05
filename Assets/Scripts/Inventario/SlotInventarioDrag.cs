@@ -113,7 +113,13 @@ public class SlotInventarioDrag : MonoBehaviour, IBeginDragHandler, IDragHandler
         var origenArmadura = eventData.pointerDrag.GetComponent<SlotArmaduraDrop>();
         var origenBaul = eventData.pointerDrag.GetComponent<SlotBaulDrag>();
         var origenCadaver = eventData.pointerDrag.GetComponent<SlotCadaverDrag>();
+        var origenPendiente = eventData.pointerDrag.GetComponent<SlotPendienteDrag>();
 
+        if (origenPendiente != null && origenPendiente.slotPendiente != null)
+        {
+            origenPendiente.slotPendiente.RecogerAlInventarioEnSlot(slotIndex);
+            return;
+        }
         if (origenArmadura != null && Inv != null)
         {
             Inv.MoverArmaduraAGridSlot(slotIndex);

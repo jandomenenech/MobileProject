@@ -1,0 +1,460 @@
+fileFormatVersion: 2
+guid: 3744935ebb446c648b92149bb3321613
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 2429145134017067326
+    second: "Men\xFA crafteo_0"
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 13
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: "Men\xFA crafteo Cat\xE1logo Slot 1"
+      rect:
+        serializedVersion: 2
+        x: 130
+        y: 98
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3a355b7fe72b7234bb9306ff4fa1894b
+      internalID: -115220174
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Men\xFA crafteo Slot Descripci\xF3n"
+      rect:
+        serializedVersion: 2
+        x: 156
+        y: 88
+        width: 39
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c379929373e24f84a9ca5c97ea0d5455
+      internalID: -383069041
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Men\xFA crafteo Cat\xE1logo Slot 2"
+      rect:
+        serializedVersion: 2
+        x: 130
+        y: 85
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 475311f0abdf0cc4aa048c42324d0162
+      internalID: -1263791777
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Men\xFA crafteo Cat\xE1logo Slot 3"
+      rect:
+        serializedVersion: 2
+        x: 130
+        y: 72
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ed5adb7dd44bb6441a64c2c0589dd1ac
+      internalID: 1276837971
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Men\xFA crafteo Pendiente"
+      rect:
+        serializedVersion: 2
+        x: 156
+        y: 71
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cc0ad6eae61f49647a4be125b0aa2c84
+      internalID: -1332062782
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Men\xFA crafteo Bot\xF3n crear"
+      rect:
+        serializedVersion: 2
+        x: 182
+        y: 71
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dfbe791ca4440af48acdb641fa2b3071
+      internalID: 1500713852
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Men\xFA crafteo Cat\xE1logo Slot 4"
+      rect:
+        serializedVersion: 2
+        x: 130
+        y: 59
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5a207f4f8c20f1e42aa2baebd92192ac
+      internalID: -1698370602
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Men\xFA crafteo Materiales Slot 1"
+      rect:
+        serializedVersion: 2
+        x: 156
+        y: 54
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 82a39ee46ed2d5f4aab2466e268bda53
+      internalID: -310621970
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Men\xFA crafteo Materiales Slot 2"
+      rect:
+        serializedVersion: 2
+        x: 169
+        y: 54
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: eb7813039b39e6640a39a52d4a9d6dfb
+      internalID: 907694899
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Men\xFA crafteo Materiales Slot 3"
+      rect:
+        serializedVersion: 2
+        x: 182
+        y: 54
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5290e38ddae006a48b5adc6a55d6ceba
+      internalID: -816813119
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Men\xFA crafteo Cat\xE1logo Slot 5"
+      rect:
+        serializedVersion: 2
+        x: 130
+        y: 46
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d3fb2426992fd8543a7a4a7e1a1fe489
+      internalID: -838570650
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Men\xFA crafteo Materiales Slot 4"
+      rect:
+        serializedVersion: 2
+        x: 156
+        y: 41
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 88b7cad00695f2d49b5eca78325fd4e2
+      internalID: -2126289474
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Men\xFA crafteo Materiales Slot 5"
+      rect:
+        serializedVersion: 2
+        x: 169
+        y: 41
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1843d9ea672a6424a9cae7e4136c47a5
+      internalID: -355387568
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Men\xFA crafteo Materiales Slot 6"
+      rect:
+        serializedVersion: 2
+        x: 182
+        y: 41
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 17d6632be4b66e741addd8366692b44a
+      internalID: 2107377688
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: e3106b3df7f30d547bee4a6dedb496d0
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      "Men\xFA crafteo Bot\xF3n crear": 1500713852
+      "Men\xFA crafteo Cat\xE1logo Slot 1": -115220174
+      "Men\xFA crafteo Cat\xE1logo Slot 2": -1263791777
+      "Men\xFA crafteo Cat\xE1logo Slot 3": 1276837971
+      "Men\xFA crafteo Cat\xE1logo Slot 4": -1698370602
+      "Men\xFA crafteo Cat\xE1logo Slot 5": -838570650
+      "Men\xFA crafteo Materiales Slot 1": -310621970
+      "Men\xFA crafteo Materiales Slot 2": 907694899
+      "Men\xFA crafteo Materiales Slot 3": -816813119
+      "Men\xFA crafteo Materiales Slot 4": -2126289474
+      "Men\xFA crafteo Materiales Slot 5": -355387568
+      "Men\xFA crafteo Materiales Slot 6": 2107377688
+      "Men\xFA crafteo Pendiente": -1332062782
+      "Men\xFA crafteo Slot Descripci\xF3n": -383069041
+      "Men\xFA crafteo_0": 2429145134017067326
+      "Men\xFA crafteo_1": -753999591
+      "Men\xFA crafteo_11": -455226276
+      "Men\xFA crafteo_12": -1199649643
+      "Men\xFA crafteo_13": -987770129
+      "Men\xFA crafteo_14": 2137699299
+      "Men\xFA crafteo_16": -1204584963
+      "Men\xFA crafteo_17": -1863372317
+      "Men\xFA crafteo_18": 748995853
+      "Men\xFA crafteo_19": 517386722
+      "Men\xFA crafteo_2": -628196948
+      "Men\xFA crafteo_20": 773524716
+      "Men\xFA crafteo_21": -82006831
+      "Men\xFA crafteo_23": 504539787
+      "Men\xFA crafteo_25": 1870844576
+      "Men\xFA crafteo_27": -1455680977
+      "Men\xFA crafteo_28": -1296527342
+      "Men\xFA crafteo_3": -868719656
+      "Men\xFA crafteo_30": -799904540
+      "Men\xFA crafteo_34": -1515274655
+      "Men\xFA crafteo_35": -811839049
+      "Men\xFA crafteo_37": -1075603441
+      "Men\xFA crafteo_4": -1943846481
+      "Men\xFA crafteo_41": -781347474
+      "Men\xFA crafteo_42": -1078884232
+      "Men\xFA crafteo_43": 864098174
+      "Men\xFA crafteo_44": 1787012256
+      "Men\xFA crafteo_45": 2043932830
+      "Men\xFA crafteo_46": -1092050018
+      "Men\xFA crafteo_47": 1247044874
+      "Men\xFA crafteo_48": 855515908
+      "Men\xFA crafteo_5": -368880700
+      "Men\xFA crafteo_6": 1575711855
+      "Men\xFA crafteo_7": -1899030155
+      "Men\xFA crafteo_9": 141993185
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
