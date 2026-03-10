@@ -12279,7 +12279,7 @@ Animator:
   m_GameObject: {fileID: 1247215565}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 158837cdf9fb7ed40980446443d9e411, type: 2}
+  m_Controller: {fileID: 22100000, guid: 73413dae2db25dc449e979302e1b0c3d, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -15934,7 +15934,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 918711164461533235, guid: cd70603cd15700143a382b233de8a27e, type: 3}
       propertyPath: m_SortingLayer
-      value: 6
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 918711164461533235, guid: cd70603cd15700143a382b233de8a27e, type: 3}
       propertyPath: m_SortingOrder
@@ -15946,7 +15946,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1451907087201995500, guid: cd70603cd15700143a382b233de8a27e, type: 3}
       propertyPath: m_SortingLayer
-      value: 6
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 1451907087201995500, guid: cd70603cd15700143a382b233de8a27e, type: 3}
       propertyPath: m_SortingOrder
@@ -16001,6 +16001,10 @@ PrefabInstance:
       value: Player
       objectReference: {fileID: 0}
     - target: {fileID: 3612753557370599839, guid: cd70603cd15700143a382b233de8a27e, type: 3}
+      propertyPath: moveSpeed
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3612753557370599839, guid: cd70603cd15700143a382b233de8a27e, type: 3}
       propertyPath: offsetUp.y
       value: 1.5
       objectReference: {fileID: 0}
@@ -16034,7 +16038,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4597386307943302142, guid: cd70603cd15700143a382b233de8a27e, type: 3}
       propertyPath: m_SortingLayer
-      value: 6
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 4597386307943302142, guid: cd70603cd15700143a382b233de8a27e, type: 3}
       propertyPath: m_SortingOrder
@@ -16062,7 +16066,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8132392729707739910, guid: cd70603cd15700143a382b233de8a27e, type: 3}
       propertyPath: m_SortingLayer
-      value: 6
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 8132392729707739910, guid: cd70603cd15700143a382b233de8a27e, type: 3}
       propertyPath: m_SortingOrder
@@ -30883,7 +30887,7 @@ PrefabInstance:
       objectReference: {fileID: 1247215582}
     - target: {fileID: 3847906185606882507, guid: 3ec4c0bc36d50184a92c96f47e2bff74, type: 3}
       propertyPath: m_SortingLayer
-      value: 6
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 3847906185606882507, guid: 3ec4c0bc36d50184a92c96f47e2bff74, type: 3}
       propertyPath: m_SortingLayerID
@@ -30895,7 +30899,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5986366631160828359, guid: 3ec4c0bc36d50184a92c96f47e2bff74, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8138453827364670445, guid: 3ec4c0bc36d50184a92c96f47e2bff74, type: 3}
       propertyPath: m_LocalPosition.x

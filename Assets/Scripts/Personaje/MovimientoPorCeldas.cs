@@ -81,10 +81,14 @@ public class MovimientoPorCeldas : MonoBehaviour
     [SerializeField] private float duracionAtaqueParado = 0.45f;
     private bool _attackingParado;
     private float _attackEndTime;
-    // true cuando se ha pulsado Espacio mientras el personaje a?n estaba movi?ndose,
-    // para lanzar el ataque justo al llegar a la siguiente celda.
     private bool _attackQueued;
     private Transform _manoOTool;
+
+    [Header("Corte (tecla G)")]
+    [SerializeField] private float duracionCorteParado = 0.45f;
+    private bool _corteParado;
+    private float _corteEndTime;
+    private bool _corteQueued;
 
     // --- Profundidad Y (sorting basado en posición) ---
     private const int PrecisionOrdenY = 100;
@@ -96,6 +100,12 @@ public class MovimientoPorCeldas : MonoBehaviour
     private static readonly int HashAtacarPA = Animator.StringToHash("Base Layer.Atacar PA");
     private static readonly int HashAtacarPerfilL = Animator.StringToHash("Base Layer.Atacar Perfil L");
     private static readonly int HashAtacarPerfilR = Animator.StringToHash("Base Layer.Atacar Perfil R");
+
+    private static readonly int HashCorteAP = Animator.StringToHash("Base Layer.Corte AP");
+    private static readonly int HashCortePA = Animator.StringToHash("Base Layer.Corte PA");
+    private static readonly int HashCortePerfilL = Animator.StringToHash("Base Layer.Corte Perfil L");
+    private static readonly int HashCortePerfilR = Animator.StringToHash("Base Layer.Corte Perfil R");
+
     private const float AtaqueTimeoutSeguridad = 2f;
 
     void Start()
@@ -228,6 +238,13 @@ public class MovimientoPorCeldas : MonoBehaviour
                 if (ataque != null)
                     IniciarAtaqueParado(ataque);
             }
+            else if (_corteQueued)
+            {
+                _corteQueued = false;
+                var ataque = GetComponent<AtaqueyInteraccion>();
+                if (ataque != null)
+                    IniciarCorteParado(ataque);
+            }
             else
             {
                 DetectMovementInput();
@@ -266,6 +283,7 @@ public class MovimientoPorCeldas : MonoBehaviour
         }
 
         ProcesarEntradaAtaque();
+        ProcesarEntradaCorte();
 
         if (_rb != null)
             transform.position = _rb.position;
@@ -289,8 +307,7 @@ public class MovimientoPorCeldas : MonoBehaviour
     /// </summary>
     void ProcesarRotacionEnCelda()
     {
-        // No permitir cambiar la orientaci?n mientras se est? realizando un ataque parado
-        if (_attackingParado) return;
+        if (_attackingParado || _corteParado) return;
 
         bool modifier = Input.GetKey(teclaRotar);
         if (!modifier) return;
@@ -312,8 +329,7 @@ public class MovimientoPorCeldas : MonoBehaviour
     {
         inputDirection = Vector2.zero;
 
-        // Mientras el personaje est? realizando un ataque parado, no aceptar nueva entrada de movimiento
-        if (_attackingParado)
+        if (_attackingParado || _corteParado)
             return;
 
         // Nota: si pulsas varias teclas a la vez, la ?ltima l?nea evaluada puede sobrescribir.
@@ -348,9 +364,7 @@ public class MovimientoPorCeldas : MonoBehaviour
         // Solo animar andar cuando realmente nos movemos; si estamos bloqueados (tecla pulsada pero sin avanzar) no andar
         bool isMovingAnim = isMoving;
 
-        // Si estamos en un ataque parado, no cambiamos la ?ltima direcci?n por nuevas teclas
-        // y forzamos el par?metro IsMoving a false para que la animaci?n sea coherente.
-        if (_attackingParado)
+        if (_attackingParado || _corteParado)
         {
             AplicarParametrosAnimator(lastInputDirection.x, lastInputDirection.y, false);
             return;
@@ -385,18 +399,29 @@ public class MovimientoPorCeldas : MonoBehaviour
             || hash == HashAtacarPerfilL || hash == HashAtacarPerfilR;
     }
 
-    /// <summary>True si el Animator está en un estado de ataque o en transición hacia/desde uno.</summary>
-    static bool EstaEnEstadoAtaque(Animator a)
+    static bool EsHashCorte(int hash)
+    {
+        return hash == HashCorteAP || hash == HashCortePA
+            || hash == HashCortePerfilL || hash == HashCortePerfilR;
+    }
+
+    static bool EsHashAccion(int hash)
+    {
+        return EsHashAtaque(hash) || EsHashCorte(hash);
+    }
+
+    /// <summary>True si el Animator está en un estado de acción (ataque o corte) o en transición hacia/desde uno.</summary>
+    static bool EstaEnEstadoAccion(Animator a)
     {
         if (a == null || !a.enabled || a.layerCount == 0) return false;
-        if (EsHashAtaque(a.GetCurrentAnimatorStateInfo(0).fullPathHash)) return true;
-        if (a.IsInTransition(0) && EsHashAtaque(a.GetNextAnimatorStateInfo(0).fullPathHash)) return true;
+        if (EsHashAccion(a.GetCurrentAnimatorStateInfo(0).fullPathHash)) return true;
+        if (a.IsInTransition(0) && EsHashAccion(a.GetNextAnimatorStateInfo(0).fullPathHash)) return true;
         return false;
     }
 
     void ProcesarEntradaAtaque()
     {
-        if (_attackingParado || _attackQueued)
+        if (_attackingParado || _attackQueued || _corteParado || _corteQueued)
             return;
 
         if (inventario == null || !inventario.TieneArmaEquipada)
@@ -407,16 +432,30 @@ public class MovimientoPorCeldas : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space) && ataque.timeNextAttack <= 0f)
         {
-            // Si estamos movi�ndonos, guardamos que hay un ataque pendiente
-            // y lo lanzaremos cuando lleguemos a la celda destino.
             if (isMoving)
-            {
                 _attackQueued = true;
-            }
             else
-            {
                 IniciarAtaqueParado(ataque);
-            }
+        }
+    }
+
+    void ProcesarEntradaCorte()
+    {
+        if (_corteParado || _corteQueued || _attackingParado || _attackQueued)
+            return;
+
+        if (inventario == null || !inventario.TieneArmaEquipada)
+            return;
+
+        var ataque = GetComponent<AtaqueyInteraccion>();
+        if (ataque == null) return;
+
+        if (Input.GetKeyDown(KeyCode.G) && ataque.timeNextAttack <= 0f)
+        {
+            if (isMoving)
+                _corteQueued = true;
+            else
+                IniciarCorteParado(ataque);
         }
     }
 
@@ -434,6 +473,20 @@ public class MovimientoPorCeldas : MonoBehaviour
         _attackEndTime = Time.time + duracionAtaqueParado;
     }
 
+    void IniciarCorteParado(AtaqueyInteraccion ataque)
+    {
+        if (ataque == null) return;
+
+        ataque.timeNextAttack = ataque.timeIdle;
+        _corteQueued = false;
+
+        AplicarParametrosAnimator(lastInputDirection.x, lastInputDirection.y, false);
+        ReproducirCorteDirecto();
+
+        _corteParado = true;
+        _corteEndTime = Time.time + duracionCorteParado;
+    }
+
     // --- Orientacion: al estar parado usamos sprite por codigo; al andar el Animator controla el sprite ---
     void ActualizarOrientacionYGizmo()
     {
@@ -441,13 +494,20 @@ public class MovimientoPorCeldas : MonoBehaviour
         {
             bool pasadoGracia = Time.time >= _attackEndTime;
             bool timeout = Time.time >= _attackEndTime + AtaqueTimeoutSeguridad;
-            if (timeout || (pasadoGracia && !EstaEnEstadoAtaque(animator)))
+            if (timeout || (pasadoGracia && !EstaEnEstadoAccion(animator)))
                 _attackingParado = false;
         }
+        if (_corteParado && animator != null)
+        {
+            bool pasadoGracia = Time.time >= _corteEndTime;
+            bool timeout = Time.time >= _corteEndTime + AtaqueTimeoutSeguridad;
+            if (timeout || (pasadoGracia && !EstaEnEstadoAccion(animator)))
+                _corteParado = false;
+        }
 
-        bool atacandoParado = !isMoving && _attackingParado;
+        bool accionParada = !isMoving && (_attackingParado || _corteParado);
 
-        if (!isMoving && !atacandoParado && Input.GetKeyDown(KeyCode.Space)
+        if (!isMoving && !accionParada && Input.GetKeyDown(KeyCode.Space)
             && inventario != null && inventario.TieneArmaEquipada)
         {
             var ataque = GetComponent<AtaqueyInteraccion>();
@@ -461,11 +521,25 @@ public class MovimientoPorCeldas : MonoBehaviour
             }
         }
 
-        atacandoParado = !isMoving && _attackingParado;
+        if (!isMoving && !accionParada && Input.GetKeyDown(KeyCode.G)
+            && inventario != null && inventario.TieneArmaEquipada)
+        {
+            var ataque = GetComponent<AtaqueyInteraccion>();
+            if (ataque != null && ataque.timeNextAttack <= 0f)
+            {
+                ataque.timeNextAttack = ataque.timeIdle;
+                AplicarParametrosAnimator(lastInputDirection.x, lastInputDirection.y, false);
+                ReproducirCorteDirecto();
+                _corteParado = true;
+                _corteEndTime = Time.time + duracionCorteParado;
+            }
+        }
+
+        accionParada = !isMoving && (_attackingParado || _corteParado);
 
         if (animatorsHijos != null)
         {
-            if (atacandoParado)
+            if (accionParada)
             {
                 foreach (var a in animatorsHijos)
                     if (a != null) a.enabled = true;
@@ -479,7 +553,7 @@ public class MovimientoPorCeldas : MonoBehaviour
                     if (esArma)
                     {
                         a.enabled = true;
-                        if (!isMoving && !_attackingParado)
+                        if (!isMoving && !_attackingParado && !_corteParado)
                         {
                             string estado = NombreEstadoEstatico(lastInputDirection);
                             AnimatorStateInfo info = a.GetCurrentAnimatorStateInfo(0);
@@ -496,7 +570,7 @@ public class MovimientoPorCeldas : MonoBehaviour
         SpriteRenderer srGizmo = spriteRenderer != null ? spriteRenderer : (_spriteForFlip != null ? _spriteForFlip : (_spriteForFlip = GetComponent<SpriteRenderer>() != null ? GetComponent<SpriteRenderer>() : GetComponentInChildren<SpriteRenderer>()));
         if (srGizmo != null) srGizmo.flipX = false;
 
-        if (!isMoving && !atacandoParado && _spriteAP != null && _spritePA != null && _spritePerfilL != null && _spritePerfilR != null)
+        if (!isMoving && !accionParada && _spriteAP != null && _spritePA != null && _spritePerfilL != null && _spritePerfilR != null)
         {
             Sprite s = DireccionASpriteCuerpo(lastInputDirection);
             if (s != null)
@@ -734,11 +808,30 @@ public class MovimientoPorCeldas : MonoBehaviour
         }
     }
 
+    void ReproducirCorteDirecto()
+    {
+        if (animatorsHijos == null) return;
+        string estadoCorte = NombreEstadoCorte(lastInputDirection);
+        foreach (var a in animatorsHijos)
+        {
+            if (a == null) continue;
+            a.enabled = true;
+            a.Play(estadoCorte, 0, 0f);
+        }
+    }
+
     static string NombreEstadoAtaque(Vector2 direction)
     {
         if (Mathf.Abs(direction.x) > Mathf.Abs(direction.y))
             return direction.x > 0 ? "Atacar Perfil R" : "Atacar Perfil L";
         return direction.y > 0 ? "Atacar PA" : "Atacar AP";
+    }
+
+    static string NombreEstadoCorte(Vector2 direction)
+    {
+        if (Mathf.Abs(direction.x) > Mathf.Abs(direction.y))
+            return direction.x > 0 ? "Corte Perfil R" : "Corte Perfil L";
+        return direction.y > 0 ? "Corte PA" : "Corte AP";
     }
 
     /// <summary>AP=abajo, PA=arriba, Perfil L=izq, Perfil R=der. Misma logica para cuerpo y accesorios.</summary>
