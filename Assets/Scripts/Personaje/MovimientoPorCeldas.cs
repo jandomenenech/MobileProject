@@ -9,6 +9,7 @@ public class MovimientoPorCeldas : MonoBehaviour
     [Header("Grid")]
     private float cellSize = 1.0f; // 1 celda = 1 unidad
     [SerializeField] private float moveSpeed = 5.0f;
+    private float _baseMoveSpeed;
     [SerializeField] private Vector2 gridOrigin = new Vector2(-0.5f, 1.2f); 
 
     [Header("Map Collider (bloqueo por celdas)")]
@@ -84,11 +85,17 @@ public class MovimientoPorCeldas : MonoBehaviour
     private bool _attackQueued;
     private Transform _manoOTool;
 
-    [Header("Corte (tecla G)")]
+    [Header("Corte (combo: segundo Espacio)")]
     [SerializeField] private float duracionCorteParado = 0.45f;
     private bool _corteParado;
     private float _corteEndTime;
     private bool _corteQueued;
+
+    [Header("Combo Ataque → Corte")]
+    [Tooltip("Tiempo máximo (seg) entre el ataque y el corte para que cuente como combo.")]
+    [SerializeField] private float comboTimeout = 0.8f;
+    private int _comboStep;
+    private float _comboLastAttackTime;
 
     // --- Profundidad Y (sorting basado en posición) ---
     private const int PrecisionOrdenY = 100;
@@ -134,6 +141,7 @@ public class MovimientoPorCeldas : MonoBehaviour
         if (_effectiveMapLayers == 0) _effectiveMapLayers = (LayerMask)3840;
         targetPosition = SnapToGrid(transform.position);
         transform.position = targetPosition;
+        _baseMoveSpeed = moveSpeed;
         if (_rb != null)
         {
             _rb.bodyType = RigidbodyType2D.Kinematic;
@@ -282,8 +290,10 @@ public class MovimientoPorCeldas : MonoBehaviour
             return;
         }
 
+        if (_comboStep > 0 && Time.time - _comboLastAttackTime > comboTimeout)
+            _comboStep = 0;
+
         ProcesarEntradaAtaque();
-        ProcesarEntradaCorte();
 
         if (_rb != null)
             transform.position = _rb.position;
@@ -421,6 +431,7 @@ public class MovimientoPorCeldas : MonoBehaviour
 
     void ProcesarEntradaAtaque()
     {
+        // Mientras dura la animación de ataque parado, ignorar nuevas pulsaciones
         if (_attackingParado || _attackQueued || _corteParado || _corteQueued)
             return;
 
@@ -432,30 +443,22 @@ public class MovimientoPorCeldas : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space) && ataque.timeNextAttack <= 0f)
         {
+            bool esCorte = _comboStep == 1 && (Time.time - _comboLastAttackTime) <= comboTimeout;
+
             if (isMoving)
-                _attackQueued = true;
+            {
+                if (esCorte)
+                    _corteQueued = true;
+                else
+                    _attackQueued = true;
+            }
             else
-                IniciarAtaqueParado(ataque);
-        }
-    }
-
-    void ProcesarEntradaCorte()
-    {
-        if (_corteParado || _corteQueued || _attackingParado || _attackQueued)
-            return;
-
-        if (inventario == null || !inventario.TieneArmaEquipada)
-            return;
-
-        var ataque = GetComponent<AtaqueyInteraccion>();
-        if (ataque == null) return;
-
-        if (Input.GetKeyDown(KeyCode.G) && ataque.timeNextAttack <= 0f)
-        {
-            if (isMoving)
-                _corteQueued = true;
-            else
-                IniciarCorteParado(ataque);
+            {
+                if (esCorte)
+                    IniciarCorteParado(ataque);
+                else
+                    IniciarAtaqueParado(ataque);
+            }
         }
     }
 
@@ -471,6 +474,10 @@ public class MovimientoPorCeldas : MonoBehaviour
 
         _attackingParado = true;
         _attackEndTime = Time.time + duracionAtaqueParado;
+
+        // Marcamos que hemos hecho el primer ataque del combo,
+        // pero el tiempo del combo empezará a contarse cuando termine la animación.
+        _comboStep = 1;
     }
 
     void IniciarCorteParado(AtaqueyInteraccion ataque)
@@ -485,24 +492,41 @@ public class MovimientoPorCeldas : MonoBehaviour
 
         _corteParado = true;
         _corteEndTime = Time.time + duracionCorteParado;
+
+        _comboStep = 0;
     }
 
     // --- Orientacion: al estar parado usamos sprite por codigo; al andar el Animator controla el sprite ---
     void ActualizarOrientacionYGizmo()
     {
+        bool estabaAtacandoParado = _attackingParado;
+
         if (_attackingParado && animator != null)
         {
             bool pasadoGracia = Time.time >= _attackEndTime;
             bool timeout = Time.time >= _attackEndTime + AtaqueTimeoutSeguridad;
             if (timeout || (pasadoGracia && !EstaEnEstadoAccion(animator)))
+            {
                 _attackingParado = false;
+                moveSpeed = _baseMoveSpeed;
+            }
         }
         if (_corteParado && animator != null)
         {
             bool pasadoGracia = Time.time >= _corteEndTime;
             bool timeout = Time.time >= _corteEndTime + AtaqueTimeoutSeguridad;
             if (timeout || (pasadoGracia && !EstaEnEstadoAccion(animator)))
+            {
                 _corteParado = false;
+                moveSpeed = _baseMoveSpeed;
+            }
+        }
+        // Aquí es cuando realmente termina la animación de ataque parado.
+        // A partir de este momento empieza a contar la ventana de combo.
+        if (estabaAtacandoParado && !_attackingParado)
+        {
+            _comboStep = 1;
+            _comboLastAttackTime = Time.time;
         }
 
         bool accionParada = !isMoving && (_attackingParado || _corteParado);
@@ -513,25 +537,24 @@ public class MovimientoPorCeldas : MonoBehaviour
             var ataque = GetComponent<AtaqueyInteraccion>();
             if (ataque != null && ataque.timeNextAttack <= 0f)
             {
+                bool esCorte = _comboStep == 1 && (Time.time - _comboLastAttackTime) <= comboTimeout;
                 ataque.timeNextAttack = ataque.timeIdle;
                 AplicarParametrosAnimator(lastInputDirection.x, lastInputDirection.y, false);
-                ReproducirAtaqueDirecto();
-                _attackingParado = true;
-                _attackEndTime = Time.time + duracionAtaqueParado;
-            }
-        }
-
-        if (!isMoving && !accionParada && Input.GetKeyDown(KeyCode.G)
-            && inventario != null && inventario.TieneArmaEquipada)
-        {
-            var ataque = GetComponent<AtaqueyInteraccion>();
-            if (ataque != null && ataque.timeNextAttack <= 0f)
-            {
-                ataque.timeNextAttack = ataque.timeIdle;
-                AplicarParametrosAnimator(lastInputDirection.x, lastInputDirection.y, false);
-                ReproducirCorteDirecto();
-                _corteParado = true;
-                _corteEndTime = Time.time + duracionCorteParado;
+                if (esCorte)
+                {
+                    ReproducirCorteDirecto();
+                    _corteParado = true;
+                    _corteEndTime = Time.time + duracionCorteParado;
+                    _comboStep = 0;
+                }
+                else
+                {
+                    ReproducirAtaqueDirecto();
+                    _attackingParado = true;
+                    _attackEndTime = Time.time + duracionAtaqueParado;
+                    _comboStep = 1;
+                    _comboLastAttackTime = Time.time;
+                }
             }
         }
 
