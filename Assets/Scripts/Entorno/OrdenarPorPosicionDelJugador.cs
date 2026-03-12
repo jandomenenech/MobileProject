@@ -65,19 +65,35 @@ public class OrdenarPorPosicionDelJugador : MonoBehaviour
         if (alturaEnCeldas > 1)
             yBaseHierba -= (alturaEnCeldas - 1) * 0.5f * cellSize;
 
-        // Forzar a usar la misma Sorting Layer que el jugador, como antes,
-        // para que no cambie el comportamiento respecto a otros layers del escenario.
-        if (_movimientoJugador != null && jugadorRenderer == null)
-            jugadorRenderer = _movimientoJugador.GetComponentInChildren<SpriteRenderer>();
-        if (jugadorRenderer != null)
-            _sr.sortingLayerID = jugadorRenderer.sortingLayerID;
+        // Orden base fijo para arbustos/hierba en la misma Sorting Layer que el jugador.
+        // Regla deseada:
+        // - Personaje en misma celda o por encima -> hierba en 80 (delante del jugador)
+        // - Personaje en celda inferior           -> hierba en 79 (detrás del jugador)
+        int orden = 80;
+        Vector2 celdaJugador = Vector2.zero;
+        if (_movimientoJugador != null)
+        {
+            celdaJugador = _movimientoJugador.GetPosicionCeldaActual();
+            float deltaY = celdaJugador.y - yBaseHierba;
+            bool mismaFila = Mathf.Abs(deltaY) <= toleranciaMismaFila;
 
-        _sr.sortingOrder = -Mathf.RoundToInt(yBaseHierba * precisionOrden) + offsetOrden;
+            if (mismaFila || deltaY > 0f)
+            {
+                // Misma celda o por encima: hierba por delante
+                orden = 80;
+            }
+            else
+            {
+                // Jugador claramente por debajo: hierba por detrás
+                orden = 79;
+            }
+        }
+
+        _sr.sortingOrder = orden + offsetOrden;
 
         // --- Cambio de sprite cuando el JUGADOR pisa la misma casilla base ---
         if (spriteJugadorEnMismaCelda == null || _movimientoJugador == null) return;
 
-        Vector2 celdaJugador = _movimientoJugador.GetPosicionCeldaActual();
         bool mismaCelda =
             Mathf.Abs(celdaJugador.x - centro.x) <= cellSize * 0.1f &&
             Mathf.Abs(celdaJugador.y - yBaseHierba) <= toleranciaMismaFila;

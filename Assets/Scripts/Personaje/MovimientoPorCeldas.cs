@@ -306,7 +306,9 @@ public class MovimientoPorCeldas : MonoBehaviour
     void LateUpdate()
     {
         if (_sortRenderers == null) return;
-        int baseOrder = -Mathf.RoundToInt(transform.position.y * PrecisionOrdenY);
+        // Mantener siempre el personaje en un orden de capa fijo (≈80),
+        // usando solo los offsets relativos capturados en InicializarSortingProfundidad().
+        const int baseOrder = 80;
         for (int i = 0; i < _sortRenderers.Length; i++)
         {
             if (_sortRenderers[i] == null) continue;
