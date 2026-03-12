@@ -308,8 +308,11 @@ public class MovimientoPorCeldas : MonoBehaviour
         if (_sortRenderers == null) return;
         int baseOrder = -Mathf.RoundToInt(transform.position.y * PrecisionOrdenY);
         for (int i = 0; i < _sortRenderers.Length; i++)
-            if (_sortRenderers[i] != null)
-                _sortRenderers[i].sortingOrder = baseOrder + _sortOffsets[i];
+        {
+            if (_sortRenderers[i] == null) continue;
+            if (_manoOTool != null && _sortRenderers[i].transform.IsChildOf(_manoOTool)) continue;
+            _sortRenderers[i].sortingOrder = baseOrder + _sortOffsets[i];
+        }
     }
 
     /// <summary>

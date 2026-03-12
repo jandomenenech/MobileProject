@@ -832,16 +832,8 @@ public class Inventario : MonoBehaviour
             if (sr == null) continue;
             sr.gameObject.SetActive(true);
             sr.enabled = true;
-            if (srCuerpo != null)
-            {
-                sr.sortingLayerID = srCuerpo.sortingLayerID;
-                sr.sortingOrder = srCuerpo.sortingOrder + 5;
-            }
-            else
-            {
-                try { sr.sortingLayerName = "Player"; } catch { }
-                sr.sortingOrder = 1;
-            }
+            try { sr.sortingLayerName = "Mano Derecha"; } catch { }
+            sr.sortingOrder = 2;
         }
 
         tieneArmaEquipada = true;

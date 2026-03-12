@@ -64,6 +64,9 @@ TagManager:
   - name: Player
     uniqueID: 154943973
     locked: 0
+  - name: Mano Derecha
+    uniqueID: 1321848373
+    locked: 0
   - name: Hierba
     uniqueID: 2110252991
     locked: 0

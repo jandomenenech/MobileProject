@@ -103,10 +103,10 @@ TextureImporter:
       name: Hacha 1 PA 21 Corte_0
       rect:
         serializedVersion: 2
-        x: 23
-        y: 19
-        width: 6
-        height: 12
+        x: 26
+        y: 24
+        width: 7
+        height: 6
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
