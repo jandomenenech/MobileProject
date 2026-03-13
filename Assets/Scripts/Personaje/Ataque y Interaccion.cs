@@ -38,6 +38,27 @@ public class AtaqueyInteraccion : MonoBehaviour
 
     [SerializeField] private float cellSize = 1f;
 
+    public bool HayEntornoCortableDelante()
+    {
+        if (move == null) return false;
+        Vector2 facing = move.GetLastInputDirection();
+        if (facing.sqrMagnitude < 0.01f) return false;
+        facing.Normalize();
+
+        Vector2 celdaJugador = move.GetPosicionCeldaActual();
+        Vector2 celdaAtacada = celdaJugador + facing * cellSize;
+        Vector2 boxSize = new Vector2(cellSize * 0.9f, cellSize * 0.9f);
+
+        Collider2D[] objetos = Physics2D.OverlapBoxAll(celdaAtacada, boxSize, 0f);
+        foreach (Collider2D collision in objetos)
+        {
+            if (collision == null) continue;
+            if (collision.GetComponent<Arbusto>() != null)
+                return true;
+        }
+        return false;
+    }
+
     private void Attack()
     {
         if (move == null) return;

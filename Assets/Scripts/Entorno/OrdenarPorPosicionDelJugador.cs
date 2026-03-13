@@ -1,9 +1,11 @@
 using UnityEngine;
 
 /// <summary>
-/// Sorting basado en Y (profundidad): Y más bajo = sortingOrder más alto = se renderiza delante.
-/// Funciona universalmente contra jugador, NPCs y cualquier otra entidad con el mismo sistema.
-/// Opcionalmente cambia el sprite cuando el jugador pisa la misma casilla (para arbustos, hierba, etc.).
+/// Sorting basado en fila de grid para objetos de entorno (hierba, arbustos, troncos).
+/// Fórmula: sortingOrder = -fila * precisionOrden + offsetOrden
+/// El offsetOrden (25 por defecto) es mayor que el del jugador (20) y NPC (10),
+/// por lo que en la misma fila el entorno se renderiza POR DELANTE.
+/// Si el jugador baja una fila, su base order sube +100 y pasa al frente automáticamente.
 /// </summary>
 [RequireComponent(typeof(SpriteRenderer))]
 public class OrdenarPorPosicionDelJugador : MonoBehaviour
@@ -25,11 +27,17 @@ public class OrdenarPorPosicionDelJugador : MonoBehaviour
     [Tooltip("Tolerancia vertical para considerar que jugador y hierba están en la misma casilla (en unidades de mundo).")]
     [SerializeField] private float toleranciaMismaFila = 0.01f;
 
-    [Header("Profundidad Y")]
-    [Tooltip("Multiplicador de precisión. Con 100, cada unidad Y da 100 valores de sortingOrder.")]
+    [Header("Profundidad Y (fila de grid)")]
+    [Tooltip("Multiplicador de precisión. Con 100, cada fila de grid da 100 valores de sortingOrder.")]
     [SerializeField] private int precisionOrden = 100;
-    [Tooltip("Offset manual al sortingOrder (positivo = más al frente).")]
-    [SerializeField] private int offsetOrden = 0;
+    [Tooltip("Offset de tipo (positivo = más al frente). Hierba/Arbusto=25, Jugador=20, NPC=10.")]
+    [SerializeField] private int offsetOrden = 25;
+    [Tooltip("Si está activo, usa la base del Collider2D para calcular la fila (recomendado para árboles altos). Si se desactiva, usa centroCelda/alturaEnCeldas.")]
+    [SerializeField] private bool usarBaseCollider = true;
+
+    [Header("Grid (opcional)")]
+    [Tooltip("Si se asigna, la fila se calcula usando este Grid (WorldToCell), igual que el jugador.")]
+    [SerializeField] private Grid mapGrid;
 
     // Legacy fields: se mantienen para no romper la serialización de escenas existentes.
     [HideInInspector] [SerializeField] private Transform jugador;
@@ -37,6 +45,8 @@ public class OrdenarPorPosicionDelJugador : MonoBehaviour
     [HideInInspector] [SerializeField] private int offsetCuandoJugadorArribaOMisma = +1;
     [HideInInspector] [SerializeField] private int offsetCuandoJugadorAbajo = -1;
     [HideInInspector] [SerializeField] private bool usarCentroSprite = false;
+    [HideInInspector] [SerializeField] private int ordenFrente = 80;
+    [HideInInspector] [SerializeField] private int ordenDetras = 79;
 
     private MovimientoPorCeldas _movimientoJugador;
     private SpriteRenderer _sr;
@@ -52,8 +62,14 @@ public class OrdenarPorPosicionDelJugador : MonoBehaviour
             centroCelda = transform.position;
 
         _movimientoJugador = FindObjectOfType<MovimientoPorCeldas>();
-        if (_movimientoJugador != null && jugadorRenderer == null)
-            jugadorRenderer = _movimientoJugador.GetComponentInChildren<SpriteRenderer>();
+
+        if (mapGrid == null && _movimientoJugador != null)
+        {
+            // Intentamos reutilizar el mismo Grid que usa el jugador, si existe.
+            var grids = FindObjectsOfType<Grid>();
+            if (grids != null && grids.Length > 0)
+                mapGrid = grids[0];
+        }
     }
 
     void LateUpdate()
@@ -61,42 +77,45 @@ public class OrdenarPorPosicionDelJugador : MonoBehaviour
         if (_sr == null) return;
 
         Vector2 centro = usarPosicionActual ? (Vector2)transform.position : centroCelda;
-        float yBaseHierba = centro.y;
-        if (alturaEnCeldas > 1)
-            yBaseHierba -= (alturaEnCeldas - 1) * 0.5f * cellSize;
 
-        // Orden base fijo para arbustos/hierba en la misma Sorting Layer que el jugador.
-        // Regla deseada:
-        // - Personaje en misma celda o por encima -> hierba en 80 (delante del jugador)
-        // - Personaje en celda inferior           -> hierba en 79 (detrás del jugador)
-        int orden = 80;
-        Vector2 celdaJugador = Vector2.zero;
-        if (_movimientoJugador != null)
+        float yBase;
+        var col = GetComponent<Collider2D>();
+        if (usarBaseCollider && col != null)
         {
-            celdaJugador = _movimientoJugador.GetPosicionCeldaActual();
-            float deltaY = celdaJugador.y - yBaseHierba;
-            bool mismaFila = Mathf.Abs(deltaY) <= toleranciaMismaFila;
-
-            if (mismaFila || deltaY > 0f)
-            {
-                // Misma celda o por encima: hierba por delante
-                orden = 80;
-            }
-            else
-            {
-                // Jugador claramente por debajo: hierba por detrás
-                orden = 79;
-            }
+            // Anclar a la base real del collider (punto de apoyo visual), útil para árboles altos.
+            Bounds b = col.bounds;
+            yBase = b.min.y + 0.5f * cellSize;
+        }
+        else
+        {
+            // Comportamiento original: usar centroCelda y alturaEnCeldas.
+            yBase = centro.y;
+            if (alturaEnCeldas > 1)
+                yBase -= (alturaEnCeldas - 1) * 0.5f * cellSize;
         }
 
-        _sr.sortingOrder = orden + offsetOrden;
+        int fila;
+        if (mapGrid != null)
+        {
+            // Alineamos la fila con la rejilla real del mapa (mismas celdas que el jugador).
+            Vector3Int cell = mapGrid.WorldToCell(new Vector3(centro.x, yBase, 0f));
+            fila = cell.y;
+        }
+        else
+        {
+            fila = Mathf.RoundToInt(yBase / cellSize);
+        }
+
+        int orden = -fila * precisionOrden + offsetOrden;
+        _sr.sortingOrder = orden;
 
         // --- Cambio de sprite cuando el JUGADOR pisa la misma casilla base ---
         if (spriteJugadorEnMismaCelda == null || _movimientoJugador == null) return;
 
+        Vector2 celdaJugador = _movimientoJugador.GetPosicionCeldaActual();
         bool mismaCelda =
             Mathf.Abs(celdaJugador.x - centro.x) <= cellSize * 0.1f &&
-            Mathf.Abs(celdaJugador.y - yBaseHierba) <= toleranciaMismaFila;
+            Mathf.Abs(celdaJugador.y - yBase) <= toleranciaMismaFila;
 
         if (mismaCelda && !_estaEnMismaCelda)
         {
@@ -111,4 +130,3 @@ public class OrdenarPorPosicionDelJugador : MonoBehaviour
         }
     }
 }
-

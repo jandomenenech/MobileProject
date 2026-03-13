@@ -97,8 +97,10 @@ public class MovimientoPorCeldas : MonoBehaviour
     private int _comboStep;
     private float _comboLastAttackTime;
 
-    // --- Profundidad Y (sorting basado en posición) ---
+    // --- Profundidad Y (sorting basado en fila de grid) ---
     private const int PrecisionOrdenY = 100;
+    private const int OffsetTipoJugador = 20;
+    private const int OffsetTipoArma = 22;
     private SpriteRenderer[] _sortRenderers;
     private int[] _sortOffsets;
 
@@ -306,14 +308,27 @@ public class MovimientoPorCeldas : MonoBehaviour
     void LateUpdate()
     {
         if (_sortRenderers == null) return;
-        // Mantener siempre el personaje en un orden de capa fijo (≈80),
-        // usando solo los offsets relativos capturados en InicializarSortingProfundidad().
-        const int baseOrder = 80;
+
+        Vector2 celdaActual = GetPosicionCeldaActual();
+        int fila;
+        if (mapGrid != null)
+        {
+            // Alineamos la fila con la rejilla real del mapa, igual que el entorno.
+            Vector3Int cell = mapGrid.WorldToCell(new Vector3(celdaActual.x, celdaActual.y, 0f));
+            fila = cell.y;
+        }
+        else
+        {
+            fila = Mathf.RoundToInt(celdaActual.y / cellSize);
+        }
+        int baseOrden = -fila * PrecisionOrdenY;
+
         for (int i = 0; i < _sortRenderers.Length; i++)
         {
             if (_sortRenderers[i] == null) continue;
-            if (_manoOTool != null && _sortRenderers[i].transform.IsChildOf(_manoOTool)) continue;
-            _sortRenderers[i].sortingOrder = baseOrder + _sortOffsets[i];
+            bool esArma = _manoOTool != null && _sortRenderers[i].transform.IsChildOf(_manoOTool);
+            int offsetTipo = esArma ? OffsetTipoArma : OffsetTipoJugador;
+            _sortRenderers[i].sortingOrder = baseOrden + offsetTipo + _sortOffsets[i];
         }
     }
 
@@ -448,7 +463,9 @@ public class MovimientoPorCeldas : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space) && ataque.timeNextAttack <= 0f)
         {
-            bool esCorte = _comboStep == 1 && (Time.time - _comboLastAttackTime) <= comboTimeout;
+            bool esCorteCombo = _comboStep == 1 && (Time.time - _comboLastAttackTime) <= comboTimeout;
+            bool esCorteEntorno = ataque.HayEntornoCortableDelante();
+            bool esCorte = esCorteCombo || esCorteEntorno;
 
             if (isMoving)
             {
