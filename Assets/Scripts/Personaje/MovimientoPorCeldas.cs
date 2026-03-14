@@ -47,6 +47,10 @@ public class MovimientoPorCeldas : MonoBehaviour
     [Tooltip("Mantener esta tecla + flecha para solo cambiar la orientacion. Si Control no va, prueba LeftAlt en el Inspector.")]
     [SerializeField] private KeyCode teclaRotar = KeyCode.LeftControl;
 
+    [Header("Correr (Shift)")]
+    [Tooltip("Puntos extra de velocidad de movimiento mientras se mantiene Shift (LeftShift o RightShift).")]
+    [SerializeField] private float bonusVelocidadCorrer = 1f;
+
     [Header("Ataque / Gizmo")]
     [SerializeField] private Transform attackCheck;      //
     [SerializeField] private SpriteRenderer spriteRenderer;
@@ -303,6 +307,13 @@ public class MovimientoPorCeldas : MonoBehaviour
         movementDirection = targetPosition - pos;
         UpdateAnimations();
         ActualizarOrientacionYGizmo();
+
+        // Shift: aumentar velocidad de movimiento; al soltar vuelve a la base
+        if (!_attackingParado && !_corteParado)
+        {
+            bool shift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+            moveSpeed = shift ? _baseMoveSpeed + bonusVelocidadCorrer : _baseMoveSpeed;
+        }
     }
 
     void LateUpdate()
