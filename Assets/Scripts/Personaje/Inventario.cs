@@ -45,6 +45,10 @@ public class Inventario : MonoBehaviour
     [Tooltip("Cadáver cuyo inventario está abierto (null si ninguno).")]
     [HideInInspector] public CadaverInteractuable CadaverAbierto;
 
+    [Header("Hoguera")]
+    [Tooltip("Hoguera cuyo inventario está abierto (null si ninguna).")]
+    [HideInInspector] public HogueraInteractuable HogueraAbierto;
+
     void Start()
     {
         objeto = null;
@@ -64,6 +68,7 @@ public class Inventario : MonoBehaviour
     {
         activarInventario();
         TryAccionConF();
+        TryAccionConE();
         ProcesarTeclasAccesoRapido();
         if (tieneArmaEquipada && armaInstancia != null)
             ActualizarArmaEquipada();
@@ -260,6 +265,13 @@ public class Inventario : MonoBehaviour
                     CadaverAbierto.Cerrar();
                     CadaverAbierto = null;
                 }
+                if (HogueraAbierto != null)
+                {
+                    if (HogueraAbierto.panelInventarioHoguera != null)
+                        HogueraAbierto.panelInventarioHoguera.SetActive(false);
+                    HogueraAbierto.Cerrar();
+                    HogueraAbierto = null;
+                }
             }
         }
 
@@ -354,6 +366,46 @@ public class Inventario : MonoBehaviour
             var invBaul = panelBaul.GetComponent<InventarioBaulGrafico>();
             if (invBaul != null)
                 invBaul.Refrescar();
+        }
+    }
+
+    /// <summary>
+    /// Abre el inventario del personaje y el panel de la hoguera. Llamado por HogueraInteractuable.Abrir().
+    /// </summary>
+    public void AbrirInventarioConHoguera(HogueraInteractuable hoguera)
+    {
+        if (hoguera == null) return;
+
+        GameObject panelHoguera = hoguera.panelInventarioHoguera;
+        if (panelHoguera == null)
+        {
+            panelHoguera = GameObject.Find("Inventario Hoguera");
+            if (panelHoguera == null)
+            {
+                var invHogueras = Resources.FindObjectsOfTypeAll<InventarioHogueraGrafico>();
+                if (invHogueras != null && invHogueras.Length > 0 && invHogueras[0] != null)
+                    panelHoguera = invHogueras[0].gameObject;
+            }
+            if (panelHoguera != null)
+                hoguera.panelInventarioHoguera = panelHoguera;
+            else
+                Debug.LogWarning("Inventario: no se encontró ningún panel 'Inventario Hoguera'. Crea un panel con InventarioHogueraGrafico y nómbralo 'Inventario Hoguera'.");
+        }
+
+        HogueraAbierto = hoguera;
+        BaulAbierto = null;
+        CadaverAbierto = null;
+        isActive = true;
+        inventarioGrafico.SetActive(true);
+        inv.imagenesInventario();
+
+        if (panelHoguera != null)
+        {
+            panelHoguera.SetActive(true);
+            panelHoguera.transform.SetAsLastSibling();
+            var invHoguera = panelHoguera.GetComponent<InventarioHogueraGrafico>();
+            if (invHoguera != null)
+                invHoguera.Refrescar();
         }
     }
 
@@ -518,6 +570,45 @@ public class Inventario : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Mueve un objeto del inventario del jugador al slot de la hoguera. Si el objeto es Rama, enciende el fuego.
+    /// </summary>
+    public void EnviarItemAlHoguera(HogueraInteractuable hoguera, int slotJugador, int slotHoguera)
+    {
+        if (hoguera == null || inventario == null || slotJugador < 0 || slotJugador >= inventario.Count) return;
+        GameObject itemJugador = inventario[slotJugador];
+        if (itemJugador == null) return;
+
+        if (ObjetoRecogible.EsArma(itemJugador) && tieneArmaEquipada)
+            DesequiparArma();
+        if (slotArmadura == itemJugador)
+        {
+            DesequiparArmadura();
+            slotArmadura = null;
+        }
+
+        int cantidadJugador = GetCantidadEnSlot(slotJugador);
+        int cantidadHoguera = hoguera.GetCantidad(slotHoguera);
+
+        GameObject itemHoguera = hoguera.GetContenido(slotHoguera);
+        inventario[slotJugador] = itemHoguera;
+        hoguera.SetContenido(slotHoguera, itemJugador);
+
+        AsegurarTamanioCantidades();
+        cantidades[slotJugador] = cantidadHoguera;
+        hoguera.SetCantidad(slotHoguera, cantidadJugador);
+
+        if (NombreLimpioObjeto(itemJugador).Trim().Equals("Rama", System.StringComparison.OrdinalIgnoreCase))
+            hoguera.EncenderFuego();
+
+        if (inv != null) inv.imagenesInventario();
+        if (hoguera.panelInventarioHoguera != null)
+        {
+            var invHoguera = hoguera.panelInventarioHoguera.GetComponent<InventarioHogueraGrafico>();
+            if (invHoguera != null) invHoguera.Refrescar();
+        }
+    }
+
     /// <summary>Mueve la armadura del slot armadura al cadáver.</summary>
     public void EnviarArmaduraAlCadaver(CadaverInteractuable cadaver, int slotCadaver)
     {
@@ -534,6 +625,77 @@ public class Inventario : MonoBehaviour
         {
             var invCadaver = cadaver.panelInventarioCadaver.GetComponent<InventarioCadaverGrafico>();
             if (invCadaver != null) invCadaver.Refrescar();
+        }
+    }
+
+    /// <summary>
+    /// Mueve un objeto de la hoguera al slot del jugador.
+    /// </summary>
+    public void RecibirItemDesdeHoguera(HogueraInteractuable hoguera, int slotHoguera, int slotJugador)
+    {
+        if (hoguera == null || inventario == null || slotJugador < 0 || slotJugador >= inventario.Count) return;
+
+        GameObject itemHoguera = hoguera.GetContenido(slotHoguera);
+        if (itemHoguera == null) return;
+
+        GameObject itemJugador = inventario[slotJugador];
+
+        var recHoguera = itemHoguera.GetComponent<ObjetoRecogible>();
+        var recJugador = itemJugador != null ? itemJugador.GetComponent<ObjetoRecogible>() : null;
+
+        if (itemJugador != null &&
+            recHoguera != null && recJugador != null &&
+            recHoguera.categoria == CategoriaObjeto.Acumulable &&
+            recJugador.categoria == CategoriaObjeto.Acumulable &&
+            recHoguera.textura == recJugador.textura)
+        {
+            int cantidadHoguera = hoguera.GetCantidad(slotHoguera);
+            int cantidadJugador = GetCantidadEnSlot(slotJugador);
+            int suma = Mathf.Max(1, cantidadJugador) + Mathf.Max(1, cantidadHoguera);
+            AsegurarTamanioCantidades();
+            cantidades[slotJugador] = suma;
+            hoguera.SetContenido(slotHoguera, null);
+            hoguera.SetCantidad(slotHoguera, 0);
+            if (inv != null) inv.imagenesInventario();
+            if (hoguera.panelInventarioHoguera != null)
+            {
+                var invHoguera = hoguera.panelInventarioHoguera.GetComponent<InventarioHogueraGrafico>();
+                if (invHoguera != null) invHoguera.Refrescar();
+            }
+            return;
+        }
+
+        int cantidadHogueraDefault = hoguera.GetCantidad(slotHoguera);
+        int cantidadJugadorDefault = GetCantidadEnSlot(slotJugador);
+        hoguera.SetContenido(slotHoguera, itemJugador);
+        inventario[slotJugador] = itemHoguera;
+        AsegurarTamanioCantidades();
+        cantidades[slotJugador] = cantidadHogueraDefault;
+        hoguera.SetCantidad(slotHoguera, cantidadJugadorDefault);
+        if (inv != null) inv.imagenesInventario();
+        if (hoguera.panelInventarioHoguera != null)
+        {
+            var invHoguera = hoguera.panelInventarioHoguera.GetComponent<InventarioHogueraGrafico>();
+            if (invHoguera != null) invHoguera.Refrescar();
+        }
+    }
+
+    /// <summary>Mueve la armadura del slot armadura a la hoguera.</summary>
+    public void EnviarArmaduraAlHoguera(HogueraInteractuable hoguera, int slotHoguera)
+    {
+        if (hoguera == null || slotArmadura == null) return;
+        GameObject itemHoguera = hoguera.GetContenido(slotHoguera);
+        hoguera.SetContenido(slotHoguera, slotArmadura);
+        slotArmadura = itemHoguera;
+        if (slotArmadura != null)
+            EquiparArmadura(slotArmadura);
+        else
+            DesequiparArmadura();
+        if (inv != null) inv.imagenesInventario();
+        if (hoguera.panelInventarioHoguera != null)
+        {
+            var invHoguera = hoguera.panelInventarioHoguera.GetComponent<InventarioHogueraGrafico>();
+            if (invHoguera != null) invHoguera.Refrescar();
         }
     }
 
@@ -620,6 +782,15 @@ public class Inventario : MonoBehaviour
             return;
         }
 
+        if (isActive && HogueraAbierto != null)
+        {
+            if (HogueraAbierto.panelInventarioHoguera != null)
+                HogueraAbierto.panelInventarioHoguera.SetActive(false);
+            HogueraAbierto.Cerrar();
+            HogueraAbierto = null;
+            return;
+        }
+
         if (isActive) return;
 
         MovimientoPorCeldas move = GetComponent<MovimientoPorCeldas>();
@@ -700,7 +871,21 @@ public class Inventario : MonoBehaviour
                 continue;
             }
 
-            // 4) Si es un objeto recogible con categoria asignada, recogerlo
+            // 4) Si es una hoguera interactuable, abrirla (celda adyacente mirándola).
+            var hoguera = go.GetComponent<HogueraInteractuable>();
+            if (hoguera != null)
+            {
+                Vector2 celdaJugador = move.GetPosicionCeldaActual();
+                Vector2 celdaEnfrente = celdaJugador + dir * cellSize;
+                if (Vector2.Distance((Vector2)go.transform.position, celdaEnfrente) <= 0.5f)
+                {
+                    hoguera.Abrir();
+                    return;
+                }
+                continue;
+            }
+
+            // 5) Si es un objeto recogible con categoria asignada, recogerlo
             //    SOLO si está en la celda justo enfrente del jugador.
             if (!go.CompareTag("Recogible")) continue;
 
@@ -718,6 +903,42 @@ public class Inventario : MonoBehaviour
             RecogerObjeto();
             objeto = null;
             return;
+        }
+    }
+
+    /// <summary>
+    /// Acción con E: encender o apagar la hoguera que está delante. Solo se puede encender si hay al menos una Rama en el inventario de la hoguera.
+    /// </summary>
+    private void TryAccionConE()
+    {
+        if (!Input.GetKeyDown(KeyCode.E)) return;
+
+        MovimientoPorCeldas move = GetComponent<MovimientoPorCeldas>();
+        if (move == null) return;
+
+        Vector2 playerPos = transform.position;
+        Vector2 dir = move.GetLastInputDirection();
+        if (dir.sqrMagnitude < 0.01f) return;
+
+        const float cellSize = 1f;
+        Vector2 cellInFront = playerPos + dir * cellSize;
+        Collider2D[] hits = Physics2D.OverlapCircleAll(cellInFront, 0.55f);
+        foreach (Collider2D col in hits)
+        {
+            if (col == null || !col.gameObject.activeInHierarchy) continue;
+            GameObject go = col.gameObject;
+
+            var hoguera = go.GetComponent<HogueraInteractuable>();
+            if (hoguera != null)
+            {
+                Vector2 celdaJugador = move.GetPosicionCeldaActual();
+                Vector2 celdaEnfrente = celdaJugador + dir * cellSize;
+                if (Vector2.Distance((Vector2)go.transform.position, celdaEnfrente) <= 0.5f)
+                {
+                    hoguera.IntentarEncenderOApagar();
+                    return;
+                }
+            }
         }
     }
 
