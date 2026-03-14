@@ -18,6 +18,8 @@ public class Inventario : MonoBehaviour
     [Header("Arma equipada")]
     [Tooltip("Transform donde se instancia el arma (hijo 'mano' o 'tool').")]
     public Transform mano;
+    [Tooltip("Material para los SpriteRenderers del arma equipada (p. ej. Sprites-Lit para iluminación 2D). Si se asigna, se aplica al equipar cualquier arma.")]
+    public Material materialArmasLit;
     private GameObject armaInstancia;
     private DatosArma armaEquipadaDatos;
 
@@ -1054,6 +1056,8 @@ public class Inventario : MonoBehaviour
             sr.gameObject.SetActive(true);
             sr.enabled = true;
             try { sr.sortingLayerName = "Player"; } catch { }
+            if (materialArmasLit != null)
+                sr.sharedMaterial = materialArmasLit;
         }
 
         tieneArmaEquipada = true;

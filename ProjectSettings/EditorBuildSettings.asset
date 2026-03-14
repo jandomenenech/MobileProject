@@ -12,6 +12,7 @@ EditorBuildSettings:
     path: Assets/Scenes/Animaciones.unity
     guid: 641e888e7cd42db4c813c1d07698a50a
   m_configObjects:
+    com.unity.adaptivePerformance.basic.provider_settings: {fileID: 11400000, guid: bd33a648f32ccfc42a27d56e4010864f, type: 2}
     com.unity.adaptiveperformance.loader_settings: {fileID: 11400000, guid: 383df2a1a06a04a42a80f821359d5d7d, type: 2}
     com.unity.adaptiveperformance.simulator.provider_settings: {fileID: 11400000, guid: 6d1cd604bddc1724c831ff165dd19822, type: 2}
   m_UseUCBPForAssetBundles: 0

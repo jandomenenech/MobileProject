@@ -22,6 +22,9 @@ public class HogueraInteractuable : MonoBehaviour
     [Tooltip("Nombre del estado de animación del fuego (ej. 'Fuego Hoguera Animación'). Si está vacío, se usa el estado por defecto del Animator.")]
     public string nombreEstadoFuego = "Fuego Hoguera Animación";
 
+    [Tooltip("Objeto de iluminación del suelo (p. ej. 'Iluminación suelo hoguera'). Se activa al encender el fuego y se desactiva al apagarlo. Si no se asigna, se busca un hijo con ese nombre.")]
+    public GameObject iluminacionSueloHoguera;
+
     private List<GameObject> _contenido;
     private List<int> _cantidades;
     private bool _abierto;
@@ -99,6 +102,9 @@ public class HogueraInteractuable : MonoBehaviour
             if (!string.IsNullOrEmpty(nombreEstadoFuego))
                 animadorFuego.Play(nombreEstadoFuego, 0, 0f);
         }
+        AsegurarIluminacionSuelo();
+        if (iluminacionSueloHoguera != null)
+            iluminacionSueloHoguera.SetActive(true);
     }
 
     /// <summary>
@@ -110,6 +116,28 @@ public class HogueraInteractuable : MonoBehaviour
         _fuegoEncendido = false;
         if (animadorFuego != null)
             animadorFuego.gameObject.SetActive(false);
+        AsegurarIluminacionSuelo();
+        if (iluminacionSueloHoguera != null)
+            iluminacionSueloHoguera.SetActive(false);
+    }
+
+    private void AsegurarIluminacionSuelo()
+    {
+        if (iluminacionSueloHoguera != null) return;
+        Transform t = BuscarHijoPorNombre(transform, "Iluminación suelo hoguera");
+        if (t != null)
+            iluminacionSueloHoguera = t.gameObject;
+    }
+
+    private static Transform BuscarHijoPorNombre(Transform padre, string nombre)
+    {
+        if (padre.name == nombre) return padre;
+        for (int i = 0; i < padre.childCount; i++)
+        {
+            Transform encontrado = BuscarHijoPorNombre(padre.GetChild(i), nombre);
+            if (encontrado != null) return encontrado;
+        }
+        return null;
     }
 
     /// <summary>
