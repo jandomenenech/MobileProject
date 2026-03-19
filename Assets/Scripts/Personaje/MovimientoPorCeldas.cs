@@ -472,6 +472,10 @@ public class MovimientoPorCeldas : MonoBehaviour
         var ataque = GetComponent<AtaqueyInteraccion>();
         if (ataque == null) return;
 
+        // Si está equipada una antorcha, no debe ejecutarse ataque/corte con Espacio.
+        if (EstaEquipadaAntorcha())
+            return;
+
         if (Input.GetKeyDown(KeyCode.Space) && ataque.timeNextAttack <= 0f)
         {
             bool esCorteCombo = _comboStep == 1 && (Time.time - _comboLastAttackTime) <= comboTimeout;
@@ -564,7 +568,9 @@ public class MovimientoPorCeldas : MonoBehaviour
 
         bool accionParada = !isMoving && (_attackingParado || _corteParado);
 
-        if (!isMoving && !accionParada && Input.GetKeyDown(KeyCode.Space)
+        bool antorchaEquipada = EstaEquipadaAntorcha();
+
+        if (!isMoving && !accionParada && !antorchaEquipada && Input.GetKeyDown(KeyCode.Space)
             && inventario != null && inventario.TieneArmaEquipada)
         {
             var ataque = GetComponent<AtaqueyInteraccion>();
@@ -856,9 +862,14 @@ public class MovimientoPorCeldas : MonoBehaviour
     {
         if (animatorsHijos == null) return;
         string estadoAtaque = NombreEstadoAtaque(lastInputDirection);
+        bool antorchaEquipada = EstaEquipadaAntorcha();
         foreach (var a in animatorsHijos)
         {
             if (a == null) continue;
+            // Si hay antorcha equipada, evitamos que el Animator del arma reproduzca
+            // animaciones de ataque/corte que heredan clips del controller base (p.ej. Hacha).
+            if (antorchaEquipada && _manoOTool != null && a.transform.IsChildOf(_manoOTool))
+                continue;
             a.enabled = true;
             a.Play(estadoAtaque, 0, 0f);
         }
@@ -868,12 +879,38 @@ public class MovimientoPorCeldas : MonoBehaviour
     {
         if (animatorsHijos == null) return;
         string estadoCorte = NombreEstadoCorte(lastInputDirection);
+        bool antorchaEquipada = EstaEquipadaAntorcha();
         foreach (var a in animatorsHijos)
         {
             if (a == null) continue;
+            if (antorchaEquipada && _manoOTool != null && a.transform.IsChildOf(_manoOTool))
+                continue;
             a.enabled = true;
             a.Play(estadoCorte, 0, 0f);
         }
+    }
+
+    /// <summary>
+    /// Detecta si el arma equipada es una antorcha (normal o encendida) comprobando el nombre del Animator controller del arma.
+    /// </summary>
+    bool EstaEquipadaAntorcha()
+    {
+        if (_manoOTool == null || animatorsHijos == null) return false;
+
+        foreach (var a in animatorsHijos)
+        {
+            if (a == null) continue;
+            if (!a.transform.IsChildOf(_manoOTool)) continue;
+
+            var ctrl = a.runtimeAnimatorController;
+            if (ctrl == null) continue;
+
+            // Normalmente el controller se llama "Antorcha" o "Antorcha Encendida"
+            if (!string.IsNullOrEmpty(ctrl.name) && ctrl.name.Contains("Antorcha"))
+                return true;
+        }
+
+        return false;
     }
 
     static string NombreEstadoAtaque(Vector2 direction)

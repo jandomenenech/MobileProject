@@ -41,6 +41,10 @@ public class CrafteoCatalogoGrid : MonoBehaviour
 
         [Tooltip("Prefab del objeto que se crea al craftear (ej: prefab del hacha 1).")]
         public GameObject prefabResultado;
+
+        [Tooltip("Tiempo en segundos que tarda el crafteo (ej: 6). La barra de progreso se muestra durante este tiempo.")]
+        [Min(0.1f)]
+        public float tiempoCrafteoSegundos = 6f;
     }
 
     [Tooltip("Entradas del catálogo; índice 0 = Slot 1 (Hacha 1).")]

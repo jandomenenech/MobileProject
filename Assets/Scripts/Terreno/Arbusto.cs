@@ -42,6 +42,12 @@ public class Arbusto : MonoBehaviour
     [Header("Botín al cortar")]
     [Tooltip("Prefab que se instanciará en la celda del arbusto al cortarlo por primera vez (ej. Rama).")]
     [SerializeField] private GameObject prefabRamas;
+    [Tooltip("Segundo prefab opcional que se instanciará al cortar (ej. otro tipo de recurso).")]
+    [SerializeField] private GameObject prefabBotinExtra1;
+    [Tooltip("Tercer prefab opcional que se instanciará al cortar.")]
+    [SerializeField] private GameObject prefabBotinExtra2;
+    [Tooltip("Cuarto prefab opcional que se instanciará al cortar.")]
+    [SerializeField] private GameObject prefabBotinExtra3;
 
     [Header("Sorting efectos corte (fila de grid)")]
     [Tooltip("Offset de tipo para los efectos de corte (mayor = más al frente). Debería ser > Jugador (20). Por defecto 30.")]
@@ -186,10 +192,17 @@ public class Arbusto : MonoBehaviour
             dropPos = new Vector2(b.center.x, b.min.y + 0.5f);
         }
 
-        if (prefabRamas != null)
+        void InstanciarBotin(GameObject prefab)
         {
-            Instantiate(prefabRamas, dropPos, Quaternion.identity);
+            if (prefab == null) return;
+            Instantiate(prefab, dropPos, Quaternion.identity);
         }
+
+        // Botín al cortar: se instancian todos los prefabs configurados.
+        InstanciarBotin(prefabRamas);
+        InstanciarBotin(prefabBotinExtra1);
+        InstanciarBotin(prefabBotinExtra2);
+        InstanciarBotin(prefabBotinExtra3);
 
         if (arbusto != null)
         {

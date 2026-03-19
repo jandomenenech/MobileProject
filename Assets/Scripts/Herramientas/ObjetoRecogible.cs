@@ -18,8 +18,8 @@ public class ObjetoRecogible : MonoBehaviour
     [Header("Clasificacion")]
     public CategoriaObjeto categoria = CategoriaObjeto.Ninguno;
 
-    [Header("Datos del arma (solo si categoria = Arma)")]
-    [Tooltip("Asigna un asset DatosArma para que el sistema de equipamiento sepa que prefab visual instanciar.")]
+    [Header("Datos equipables (Arma/Herramienta)")]
+    [Tooltip("Asigna un asset DatosArma para que el sistema de equipamiento sepa qué prefab visual instanciar.")]
     public DatosArma datosArma;
 
     public bool esRecogido = false;
@@ -31,6 +31,13 @@ public class ObjetoRecogible : MonoBehaviour
         if (obj == null) return false;
         var rec = obj.GetComponent<ObjetoRecogible>();
         return rec != null && rec.categoria == CategoriaObjeto.Arma;
+    }
+
+    public static bool EsEquipable(GameObject obj)
+    {
+        if (obj == null) return false;
+        var rec = obj.GetComponent<ObjetoRecogible>();
+        return rec != null && (rec.categoria == CategoriaObjeto.Arma || rec.categoria == CategoriaObjeto.Herramienta);
     }
 
     public static bool EsArmaduraPorCategoria(GameObject obj)

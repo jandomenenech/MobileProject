@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -8,8 +9,15 @@ using UnityEngine.UI;
 /// Ese objeto debe tener un componente Image (o Graphic) con "Raycast Target" activado.
 /// También responde al componente Button si está en el mismo objeto o en un hijo.
 /// </summary>
-public class CrafteoBotonCrear : MonoBehaviour, IPointerClickHandler
+public class CrafteoBotonCrear : MonoBehaviour, IPointerClickHandler, IPointerDownHandler, IPointerUpHandler, IPointerExitHandler
 {
+    [Header("Sprite al pulsar")]
+    [Tooltip("Sprite que se muestra mientras se mantiene pulsado el botón. Si está vacío, no se cambia el sprite.")]
+    public Sprite spritePulsado;
+
+    [Tooltip("Image del botón. Si no se asigna, se usa el del mismo GameObject.")]
+    public Image imageBoton;
+
     [Tooltip("Referencia al catálogo de crafteo (CrafteoCatalogoGrid).")]
     public CrafteoCatalogoGrid catalogo;
 
@@ -22,9 +30,15 @@ public class CrafteoBotonCrear : MonoBehaviour, IPointerClickHandler
     [Tooltip("Referencia al slot pendiente donde aparecerá el objeto crafteado.")]
     public CrafteoSlotPendiente slotPendiente;
 
+    [Tooltip("Barra de progreso del crafteo (Menú Crafteo Slot Barra proceso). Si no se asigna, se busca en la escena.")]
+    public CrafteoBarraProgreso barraProgreso;
+
     [Header("Depuración")]
     [Tooltip("Si está activo, escribe en la consola el motivo por el que no se puede craftear.")]
     public bool logDepuracion = true;
+
+    Sprite _spriteNormalGuardado;
+    bool _crafteando;
 
     void Awake()
     {
@@ -46,6 +60,42 @@ public class CrafteoBotonCrear : MonoBehaviour, IPointerClickHandler
     public void OnPointerClick(PointerEventData eventData)
     {
         IntentarCraftear();
+    }
+
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        if (spritePulsado == null) return;
+        Image img = GetImage();
+        if (img == null) return;
+        _spriteNormalGuardado = img.sprite;
+        img.sprite = spritePulsado;
+    }
+
+    public void OnPointerUp(PointerEventData eventData)
+    {
+        RestaurarSpriteNormal();
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        RestaurarSpriteNormal();
+    }
+
+    void RestaurarSpriteNormal()
+    {
+        if (_spriteNormalGuardado == null) return;
+        Image img = GetImage();
+        if (img != null)
+        {
+            img.sprite = _spriteNormalGuardado;
+            _spriteNormalGuardado = null;
+        }
+    }
+
+    Image GetImage()
+    {
+        if (imageBoton != null) return imageBoton;
+        return GetComponent<Image>();
     }
 
     void EnlazarBoton()
@@ -85,14 +135,15 @@ public class CrafteoBotonCrear : MonoBehaviour, IPointerClickHandler
             inventarioJugador = FindFirstObjectByType<Inventario>();
         if (slotPendiente == null)
             slotPendiente = FindFirstObjectByType<CrafteoSlotPendiente>();
+        if (barraProgreso == null)
+            barraProgreso = FindFirstObjectByType<CrafteoBarraProgreso>(FindObjectsInactive.Include);
     }
 
     /// <summary>
-    /// Lógica principal: comprobar ingredientes, consumirlos y crear el resultado.
+    /// Lógica principal: comprobar ingredientes, iniciar crafteo con tiempo y barra de progreso.
     /// </summary>
     public void IntentarCraftear()
     {
-        // Este log siempre sale si el click llega al botón. Si no ves nada en consola, el click no está llegando.
         Debug.Log("[Crafteo] Botón 'Crear' pulsado.");
 
         ResolverReferencias();
@@ -106,7 +157,7 @@ public class CrafteoBotonCrear : MonoBehaviour, IPointerClickHandler
         if (entrada.receta == null || entrada.receta.Count == 0) { Debug.Log("[Crafteo] La receta no tiene ingredientes configurados."); return; }
         if (entrada.prefabResultado == null)
         {
-            Debug.LogWarning("[Crafteo] Falta 'Prefab Resultado' en la receta del hacha. En el catálogo > Entradas > Element 0 asigna el prefab del hacha 1.");
+            Debug.LogWarning("[Crafteo] Falta 'Prefab Resultado' en la receta. Asigna el prefab en el catálogo > Entradas.");
             return;
         }
 
@@ -121,12 +172,47 @@ public class CrafteoBotonCrear : MonoBehaviour, IPointerClickHandler
             return;
         }
 
-        ConsumirIngredientes(entrada.receta);
-        slotPendiente.ColocarObjeto(entrada.prefabResultado);
+        if (_crafteando)
+        {
+            if (logDepuracion) Debug.Log("[Crafteo] Ya hay un crafteo en curso.");
+            return;
+        }
 
+        float tiempo = entrada.tiempoCrafteoSegundos > 0f ? entrada.tiempoCrafteoSegundos : 6f;
+        StartCoroutine(CraftearConProgreso(entrada, tiempo));
+    }
+
+    IEnumerator CraftearConProgreso(CrafteoCatalogoGrid.EntradaCrafteo entrada, float tiempoSegundos)
+    {
+        _crafteando = true;
+
+        ConsumirIngredientes(entrada.receta);
         if (inventarioJugador.inv != null)
             inventarioJugador.inv.imagenesInventario();
 
+        if (barraProgreso != null)
+            barraProgreso.Mostrar();
+
+        yield return null; // Un frame para que se dibuje la barra al 0%
+
+        float transcurrido = 0f;
+        while (transcurrido < tiempoSegundos)
+        {
+            transcurrido += Time.deltaTime;
+            float t = Mathf.Clamp01(transcurrido / tiempoSegundos);
+            if (barraProgreso != null)
+                barraProgreso.SetProgreso(t);
+            yield return null;
+        }
+
+        if (barraProgreso != null)
+            barraProgreso.Ocultar();
+
+        slotPendiente.ColocarObjeto(entrada.prefabResultado);
+        if (inventarioJugador.inv != null)
+            inventarioJugador.inv.imagenesInventario();
+
+        _crafteando = false;
         Debug.Log("[Crafteo] Objeto crafteado. Aparece en el slot Pendiente.");
     }
 

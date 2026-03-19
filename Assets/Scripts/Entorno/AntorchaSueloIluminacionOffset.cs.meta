@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 7e3a3e9f1d2b4aa9a1d6b0e5d2c6f7a3
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  namespaceName: 
+  className: AntorchaSueloIluminacionOffset
+  assemblyName: Assembly-CSharp
+  editorClassIdentifier: 
+  scriptOpen: false
+  buildTarget:
+  - Standalone
+  - Android
+  - iOS
+

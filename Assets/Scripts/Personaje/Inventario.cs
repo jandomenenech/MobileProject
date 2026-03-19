@@ -179,7 +179,7 @@ public class Inventario : MonoBehaviour
 
         var recogible = obj.GetComponent<ObjetoRecogible>();
 
-        if (ObjetoRecogible.EsArma(obj) && tieneArmaEquipada)
+        if (ObjetoRecogible.EsEquipable(obj) && tieneArmaEquipada)
             DesequiparArma();
 
         AsegurarTamanioCantidades();
@@ -546,7 +546,7 @@ public class Inventario : MonoBehaviour
         GameObject itemJugador = inventario[slotJugador];
         if (itemJugador == null) return;
 
-        if (ObjetoRecogible.EsArma(itemJugador) && tieneArmaEquipada)
+        if (ObjetoRecogible.EsEquipable(itemJugador) && tieneArmaEquipada)
             DesequiparArma();
         if (slotArmadura == itemJugador)
         {
@@ -581,7 +581,7 @@ public class Inventario : MonoBehaviour
         GameObject itemJugador = inventario[slotJugador];
         if (itemJugador == null) return;
 
-        if (ObjetoRecogible.EsArma(itemJugador) && tieneArmaEquipada)
+        if (ObjetoRecogible.EsEquipable(itemJugador) && tieneArmaEquipada)
             DesequiparArma();
         if (slotArmadura == itemJugador)
         {
@@ -710,7 +710,7 @@ public class Inventario : MonoBehaviour
         GameObject itemJugador = inventario[slotJugador];
         if (itemJugador == null) return;
 
-        if (ObjetoRecogible.EsArma(itemJugador) && tieneArmaEquipada)
+        if (ObjetoRecogible.EsEquipable(itemJugador) && tieneArmaEquipada)
             DesequiparArma();
         if (slotArmadura == itemJugador)
         {
@@ -967,22 +967,22 @@ public class Inventario : MonoBehaviour
         var recogible = item.GetComponent<ObjetoRecogible>();
         if (recogible == null) return;
 
-        if (recogible.categoria == CategoriaObjeto.Arma)
+        if (recogible.categoria == CategoriaObjeto.Arma || recogible.categoria == CategoriaObjeto.Herramienta)
         {
             if (!tieneArmaEquipada)
             {
                 DatosArma datos = recogible.datosArma;
                 if (datos == null || datos.prefabVisual == null)
                 {
-                    Debug.LogWarning($"Acceso rapido {index + 1}: el arma '{item.name}' no tiene DatosArma o prefabVisual asignado.");
+                    Debug.LogWarning($"Acceso rapido {index + 1}: el equipable '{item.name}' no tiene DatosArma o prefabVisual asignado.");
                     return;
                 }
-                Debug.Log($"Acceso rapido {index + 1}: equipar arma desde el slot {index + 1}.");
+                Debug.Log($"Acceso rapido {index + 1}: equipar desde el slot {index + 1}.");
                 EquiparArma(datos);
             }
             else
             {
-                Debug.Log($"Acceso rapido {index + 1}: desequipar arma.");
+                Debug.Log($"Acceso rapido {index + 1}: desequipar.");
                 DesequiparArma();
             }
         }
@@ -1025,6 +1025,38 @@ public class Inventario : MonoBehaviour
         armaInstancia.transform.localScale = Vector3.one;
         armaInstancia.SetActive(true);
         armaEquipadaDatos = datos;
+
+        // Si es la antorcha, añadimos el controlador de encendido con E.
+        // (El prefab actual de antorcha no trae el script en este proyecto.)
+        {
+            var anim = armaInstancia.GetComponentInChildren<Animator>(true);
+            if (anim != null && anim.runtimeAnimatorController != null && anim.runtimeAnimatorController.name.Contains("Antorcha"))
+            {
+                if (armaInstancia.GetComponent<AntorchaLuz>() == null)
+                    armaInstancia.AddComponent<AntorchaLuz>();
+            }
+        }
+
+        // Asegura que el hijo "antorcha encendida" quede siempre 1 orden por encima.
+        {
+            Transform tEncendida = null;
+            foreach (Transform t in armaInstancia.GetComponentsInChildren<Transform>(true))
+            {
+                if (t == null) continue;
+                var n = t.name != null ? t.name.ToLowerInvariant() : "";
+                if (n.Contains("antorcha") && n.Contains("encendida"))
+                {
+                    tEncendida = t;
+                    break;
+                }
+            }
+
+            if (tEncendida != null)
+            {
+                if (tEncendida.GetComponent<AntorchaEncendidaSortingOffset>() == null)
+                    tEncendida.gameObject.AddComponent<AntorchaEncendidaSortingOffset>();
+            }
+        }
 
         foreach (var skin in armaInstancia.GetComponentsInChildren<SkinsAnimaciones>(true))
             Destroy(skin);

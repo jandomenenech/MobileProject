@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Antorcha Encendida
+  m_Controller: {fileID: 9100000, guid: 0e1373a1ce406a142bc8d552033b28b1, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: 7400000, guid: 686764733d6e9474781b240843ec1cd0, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 7ab9b884e8779dd458dae7e87a622108, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 1debdbaa6e7b8a7409a6305700f8f724, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: a79cbc44263f4c645971f324b0cf59c1, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 32e8ba18fddee8349a77598f07dd7dc1, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 66d5cc3098bf4f44284eded0663af9c8, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 85b0e5e96954d98448e2964d0b96d541, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: d3ff7e1a04109b34189fef7952fe7a89, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: d0c06b9fff330244cbac264a2d65b649, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: db9390c7eb240e84eb818cbaa5558214, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: cb4a0cadadec03a4cb2c44723ea74000, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 44c802c2c955abb4686482df67d775cb, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 8533b2a07f7b1ab43823ab33d9516e21, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: fa8cd93a8d9155845b70c47878c5a765, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 6ed59e38a50b0d542bbe748ac2d4966d, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: ca8aa2150a8a4da45988bf95e03cd844, type: 2}
