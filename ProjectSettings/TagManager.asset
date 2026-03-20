@@ -2,7 +2,7 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!78 &1
 TagManager:
-  serializedVersion: 2
+  serializedVersion: 3
   tags:
   - Recogible
   - Arbusto
@@ -55,6 +55,9 @@ TagManager:
   - name: Map Jugable 2
     uniqueID: 2225882609
     locked: 0
+  - name: Terreno
+    uniqueID: 3208924959
+    locked: 0
   - name: Manchas Suelo
     uniqueID: 1981914571
     locked: 0
@@ -73,3 +76,5 @@ TagManager:
   - name: UI
     uniqueID: 888888801
     locked: 0
+  m_RenderingLayers:
+  - Default

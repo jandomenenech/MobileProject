@@ -9,10 +9,11 @@ public class CameraMovement : MonoBehaviour
 
     void Start()
     {
-        // La cámara debe mostrar 221×124 pixels del grid Pixel (1 pixel = 0.076923 unidades).
+        // Se fuerza el zoom de la cámara al iniciar para evitar que el valor
+        // cambie al entrar en Play.
         var cam = GetComponent<Camera>();
         if (cam != null && cam.orthographic)
-            cam.orthographicSize = ResolucionPixelGrid.OrthographicSize;
+            cam.orthographicSize = 6f;
 
         // Calculamos la diferencia inicial entre la cámara y el jugador.
         offset = transform.position - player.transform.position;
