@@ -189,6 +189,9 @@ public class HogueraInteractuable : MonoBehaviour
             }
         }
 
+        if (inventarioJugador == null)
+            inventarioJugador = FindFirstObjectByType<Inventario>();
+
         if (inventarioJugador != null)
             inventarioJugador.AbrirInventarioConHoguera(this);
         else if (panelInventarioHoguera != null)

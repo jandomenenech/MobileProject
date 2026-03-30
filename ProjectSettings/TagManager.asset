@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Recogible
   - Arbusto
+  - ConstruccionColocable
   layers:
   - Default
   - TransparentFX

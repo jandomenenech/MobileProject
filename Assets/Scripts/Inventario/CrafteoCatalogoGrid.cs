@@ -10,6 +10,9 @@ using UnityEngine.UI;
 [RequireComponent(typeof(GridLayoutGroup))]
 public class CrafteoCatalogoGrid : MonoBehaviour
 {
+    [Tooltip("Raíz del menú al que pertenece este catálogo. Si se asigna, las búsquedas automáticas se limitan a esta jerarquía.")]
+    public Transform raizMenu;
+
     [System.Serializable]
     public class IngredienteReceta
     {
@@ -78,10 +81,7 @@ public class CrafteoCatalogoGrid : MonoBehaviour
             });
         }
 
-        if (descripcionSlot == null)
-            BuscarDescripcionSlot();
-        if (slotsReceta == null)
-            slotsReceta = FindFirstObjectByType<CrafteoRecetaSlots>();
+        ResolverReferenciasLocales();
 
         RefrescarSlots();
     }
@@ -98,9 +98,18 @@ public class CrafteoCatalogoGrid : MonoBehaviour
     /// </summary>
     private void BuscarDescripcionSlot()
     {
-        var encontrados = FindObjectsByType<CrafteoDescripcionSlot>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        if (encontrados != null && encontrados.Length > 0)
-            descripcionSlot = encontrados[0];
+        if (descripcionSlot != null) return;
+
+        var raiz = ObtenerRaizBusqueda();
+        if (raiz != null)
+            descripcionSlot = BuscarComponenteMasCercanoEnRaiz<CrafteoDescripcionSlot>(raiz);
+
+        if (descripcionSlot == null)
+        {
+            var encontrados = FindObjectsByType<CrafteoDescripcionSlot>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            if (encontrados != null && encontrados.Length == 1)
+                descripcionSlot = encontrados[0];
+        }
     }
 
     void OnValidate()
@@ -163,8 +172,8 @@ public class CrafteoCatalogoGrid : MonoBehaviour
     /// </summary>
     public void OnSlotSeleccionado(int index)
     {
-        if (descripcionSlot == null)
-            BuscarDescripcionSlot();
+        if (descripcionSlot == null || slotsReceta == null)
+            ResolverReferenciasLocales();
         if (descripcionSlot == null) return;
         if (entradas == null || index < 0 || index >= entradas.Count) return;
 
@@ -187,5 +196,87 @@ public class CrafteoCatalogoGrid : MonoBehaviour
         if (entradas == null || indiceSeleccionado < 0 || indiceSeleccionado >= entradas.Count)
             return null;
         return entradas[indiceSeleccionado];
+    }
+
+    private void ResolverReferenciasLocales()
+    {
+        if (descripcionSlot == null)
+            BuscarDescripcionSlot();
+
+        if (slotsReceta == null)
+        {
+            var raiz = ObtenerRaizBusqueda();
+            if (raiz != null)
+                slotsReceta = BuscarComponenteMasCercanoEnRaiz<CrafteoRecetaSlots>(raiz);
+
+            if (slotsReceta == null)
+            {
+                var encontrados = FindObjectsByType<CrafteoRecetaSlots>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+                if (encontrados != null && encontrados.Length == 1)
+                    slotsReceta = encontrados[0];
+            }
+        }
+    }
+
+    private Transform ObtenerRaizBusqueda()
+    {
+        if (raizMenu != null)
+            return raizMenu;
+
+        var canvasPadre = GetComponentInParent<Canvas>(true);
+        return canvasPadre != null ? canvasPadre.transform : transform.root;
+    }
+
+    private T BuscarComponenteMasCercanoEnRaiz<T>(Transform raiz) where T : Component
+    {
+        if (raiz == null) return null;
+
+        var candidatos = raiz.GetComponentsInChildren<T>(true);
+        if (candidatos == null || candidatos.Length == 0) return null;
+
+        T mejor = null;
+        int mejorDistancia = int.MaxValue;
+        for (int i = 0; i < candidatos.Length; i++)
+        {
+            var candidato = candidatos[i];
+            if (candidato == null || candidato.transform == transform) continue;
+
+            int distancia = DistanciaJerarquica(transform, candidato.transform);
+            if (distancia < mejorDistancia)
+            {
+                mejorDistancia = distancia;
+                mejor = candidato;
+            }
+        }
+
+        return mejor;
+    }
+
+    private int DistanciaJerarquica(Transform origen, Transform destino)
+    {
+        if (origen == null || destino == null) return int.MaxValue;
+        if (origen == destino) return 0;
+
+        Dictionary<Transform, int> distanciasOrigen = new Dictionary<Transform, int>();
+        int pasos = 0;
+        Transform actual = origen;
+        while (actual != null)
+        {
+            distanciasOrigen[actual] = pasos;
+            pasos++;
+            actual = actual.parent;
+        }
+
+        pasos = 0;
+        actual = destino;
+        while (actual != null)
+        {
+            if (distanciasOrigen.TryGetValue(actual, out int desdeOrigen))
+                return desdeOrigen + pasos;
+            pasos++;
+            actual = actual.parent;
+        }
+
+        return int.MaxValue;
     }
 }

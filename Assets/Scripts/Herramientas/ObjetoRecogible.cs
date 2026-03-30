@@ -15,6 +15,8 @@ public enum CategoriaObjeto
 
 public class ObjetoRecogible : MonoBehaviour
 {
+    private const string TagConstruccionColocable = "ConstruccionColocable";
+
     [Header("Clasificacion")]
     public CategoriaObjeto categoria = CategoriaObjeto.Ninguno;
 
@@ -25,6 +27,10 @@ public class ObjetoRecogible : MonoBehaviour
     public bool esRecogido = false;
     public GameObject player;
     public Texture textura;
+
+    [Header("Comportamiento en suelo (Construccion)")]
+    [Tooltip("Si esta activado, cuando el objeto se suelta desde el inventario al mundo se marca con el tag 'ConstruccionColocable' para deshabilitar el pickup.")]
+    public bool usarTagConstruccionColocableAlSoltar = false;
 
     public static bool EsArma(GameObject obj)
     {
@@ -58,5 +64,21 @@ public class ObjetoRecogible : MonoBehaviour
     {
         player = null;
         esRecogido = false;
+    }
+
+    void OnEnable()
+    {
+        if (!usarTagConstruccionColocableAlSoltar) return;
+
+        // Retagueamos al activarse para cubrir casos donde el objeto ya existe en la escena
+        // (o cuando pasa al mundo tras soltarse desde el inventario).
+        try
+        {
+            gameObject.tag = TagConstruccionColocable;
+        }
+        catch (UnityEngine.UnityException)
+        {
+            Debug.LogWarning($"ObjetoRecogible: el tag '{TagConstruccionColocable}' no existe. Crea el tag en Unity (Tags & Layers).");
+        }
     }
 }

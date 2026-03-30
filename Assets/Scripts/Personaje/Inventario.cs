@@ -22,6 +22,10 @@ public class Inventario : MonoBehaviour
     public Material materialArmasLit;
     private GameObject armaInstancia;
     private DatosArma armaEquipadaDatos;
+    public DatosArma ArmaEquipadaDatos => armaEquipadaDatos;
+
+    private const string TagRecogible = "Recogible";
+    private const string TagConstruccionColocable = "ConstruccionColocable";
 
     [HideInInspector] public bool tieneArmaEquipada = false;
 
@@ -38,6 +42,8 @@ public class Inventario : MonoBehaviour
     [Header("Menús")]
     [Tooltip("Menú de crafteo que debe abrirse junto con el inventario al pulsar C.")]
     public GameObject menuCrafteo;
+    [Tooltip("Menú de construcción que debe abrirse junto con el inventario al pulsar B.")]
+    public GameObject menuConstruccion;
 
     [Header("Baúl")]
     [Tooltip("Baúl cuyo inventario está abierto (null si ninguno).")]
@@ -178,6 +184,7 @@ public class Inventario : MonoBehaviour
         if (obj == null) return;
 
         var recogible = obj.GetComponent<ObjetoRecogible>();
+        bool usarTagConstruccionColocable = recogible != null && recogible.usarTagConstruccionColocableAlSoltar;
 
         if (ObjetoRecogible.EsEquipable(obj) && tieneArmaEquipada)
             DesequiparArma();
@@ -195,6 +202,8 @@ public class Inventario : MonoBehaviour
 
             GameObject copia = Instantiate(obj, posCelda, Quaternion.identity);
             ResetearEstadoRecogible(copia);
+            if (usarTagConstruccionColocable)
+                SetTagSafe(copia, TagConstruccionColocable);
             copia.SetActive(true);
 
             if (inv != null)
@@ -205,6 +214,8 @@ public class Inventario : MonoBehaviour
         // Caso normal: soltamos todo el stack (o un único objeto)
         obj.transform.position = posCelda;
         ResetearEstadoRecogible(obj);
+        if (usarTagConstruccionColocable)
+            SetTagSafe(obj, TagConstruccionColocable);
         obj.SetActive(true);
         inventario[slotIndex] = null;
         cantidades[slotIndex] = 0;
@@ -252,6 +263,8 @@ public class Inventario : MonoBehaviour
                 inventarioGrafico.SetActive(isActive);
                 if (menuCrafteo != null)
                     menuCrafteo.SetActive(false);
+                if (menuConstruccion != null)
+                    menuConstruccion.SetActive(false);
                 inv.imagenesInventario();
                 if (BaulAbierto != null)
                 {
@@ -291,8 +304,68 @@ public class Inventario : MonoBehaviour
 
             // Alternar el menú de crafteo.
             if (menuCrafteo != null)
+            {
+                if (menuConstruccion != null)
+                    menuConstruccion.SetActive(false);
                 menuCrafteo.SetActive(!menuCrafteo.activeSelf);
+            }
         }
+
+        // Tecla B: abrir/cerrar menú de construcción junto con el inventario.
+        if (Input.GetKeyDown(KeyCode.B))
+        {
+            if (menuConstruccion == null)
+                menuConstruccion = BuscarMenuConstruccionEnEscena();
+
+            // Si el inventario no está abierto, abrirlo primero.
+            if (!isActive)
+            {
+                isActive = true;
+                inventarioGrafico.SetActive(true);
+                if (inv != null)
+                    inv.imagenesInventario();
+            }
+
+            // Alternar el menú de construcción.
+            if (menuConstruccion != null)
+            {
+                if (menuCrafteo != null)
+                    menuCrafteo.SetActive(false);
+                menuConstruccion.SetActive(!menuConstruccion.activeSelf);
+            }
+            else
+            {
+                Debug.LogWarning("Inventario: no se encontró 'menuConstruccion'. Asigna la referencia en Inspector o renombra el panel como 'Menu Construccion'/'Menú Construcción'.");
+            }
+        }
+    }
+
+    private GameObject BuscarMenuConstruccionEnEscena()
+    {
+        string[] candidatos =
+        {
+            "Menu Construccion",
+            "Menú Construcción",
+            "Menú Construccion",
+            "Menu Construcción",
+            "menu construccion",
+            "menu construcción"
+        };
+
+        foreach (var t in Resources.FindObjectsOfTypeAll<Transform>())
+        {
+            if (t == null || t.gameObject == null) continue;
+            if (!t.gameObject.scene.IsValid()) continue;
+            if (t.hideFlags != HideFlags.None) continue;
+
+            foreach (var nombre in candidatos)
+            {
+                if (t.name.Equals(nombre, System.StringComparison.OrdinalIgnoreCase))
+                    return t.gameObject;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -889,7 +962,8 @@ public class Inventario : MonoBehaviour
 
             // 5) Si es un objeto recogible con categoria asignada, recogerlo
             //    SOLO si está en la celda justo enfrente del jugador.
-            if (!go.CompareTag("Recogible")) continue;
+            if (!go.CompareTag(TagRecogible)) continue;
+            if (go.CompareTag(TagConstruccionColocable)) continue;
 
             var recogible = go.GetComponent<ObjetoRecogible>();
             if (recogible == null || recogible.categoria == CategoriaObjeto.Ninguno) continue;
@@ -1279,6 +1353,19 @@ public class Inventario : MonoBehaviour
         if (rec == null) return;
         rec.esRecogido = false;
         rec.player = null;
+    }
+
+    private static void SetTagSafe(GameObject obj, string tagName)
+    {
+        if (obj == null || string.IsNullOrEmpty(tagName)) return;
+        try
+        {
+            obj.tag = tagName;
+        }
+        catch (UnityEngine.UnityException)
+        {
+            Debug.LogWarning($"Inventario: el tag '{tagName}' no existe. Crea el tag en Unity (Tags & Layers) para que funcione la restriccion de pickup.");
+        }
     }
 
     string NombreLimpioObjeto(GameObject obj)

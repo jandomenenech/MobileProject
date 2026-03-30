@@ -75,7 +75,7 @@ public class MovimientoPorCeldas : MonoBehaviour
 
     [Header("Armadura (sincronizada con direccion)")]
     [SerializeField] private string armorSpritePrefix = "Armadura 2";
-    [SerializeField] private string armorResourcesPath = "Sprites/Armors/Armor2/Sprites/";
+    [SerializeField] private string armorResourcesPath = "Sprites/Armadura/Armadura 2/Sprites/";
 
     private SpriteRenderer _bodySpriteForSync;
     private Dictionary<string, Sprite> _hairSpriteCache = new Dictionary<string, Sprite>();
@@ -184,20 +184,7 @@ public class MovimientoPorCeldas : MonoBehaviour
                 foreach (var sr in GetComponentsInChildren<SpriteRenderer>(true))
                     if (sr.gameObject.name.ToLowerInvariant().Contains("hair")) { hairSpriteRenderer = sr; break; }
         }
-        _bodySpriteForSync = null;
-        if (animatorsHijos != null)
-            foreach (var a in animatorsHijos)
-                if (a != null)
-                {
-                    var sr = a.GetComponent<SpriteRenderer>();
-                    if (sr != null && sr.sprite != null && (sr.sprite.name.Contains("Cuerpo Base") || sr.sprite.name.Contains("Armadura") || sr.sprite.name.Contains("AP") || sr.sprite.name.Contains("PA")))
-                    { _bodySpriteForSync = sr; break; }
-                }
-        if (_bodySpriteForSync == null && animatorsHijos != null && animatorsHijos.Length > 0)
-        {
-            var sr = animatorsHijos[0].GetComponent<SpriteRenderer>();
-            if (sr != null) _bodySpriteForSync = sr;
-        }
+        ActualizarBodySpriteForSync();
         var rootSr = GetComponent<SpriteRenderer>();
         if (rootSr != null && _bodySpriteForSync != null) rootSr.enabled = false;
 
@@ -318,6 +305,14 @@ public class MovimientoPorCeldas : MonoBehaviour
 
     void LateUpdate()
     {
+        // Tras el tick de Animator del cuerpo, alinear frame/tiempo de armadura y arma con el líder (evita desfase al caminar).
+        if (inventario == null || !inventario.isActive)
+        {
+            bool accionParadaLu = !isMoving && (_attackingParado || _corteParado);
+            if (isMoving && !accionParadaLu && !_attackingParado && !_corteParado)
+                SincronizarAnimadoresAccesoriosConLider();
+        }
+
         if (_sortRenderers == null) return;
 
         Vector2 celdaActual = GetPosicionCeldaActual();
@@ -472,8 +467,8 @@ public class MovimientoPorCeldas : MonoBehaviour
         var ataque = GetComponent<AtaqueyInteraccion>();
         if (ataque == null) return;
 
-        // Si está equipada una antorcha, no debe ejecutarse ataque/corte con Espacio.
-        if (EstaEquipadaAntorcha())
+        // Antorcha / martillo constructor: solo caminar (sin ataque/corte con Espacio).
+        if (EstaEquipadaHerramientaSinCombate())
             return;
 
         if (Input.GetKeyDown(KeyCode.Space) && ataque.timeNextAttack <= 0f)
@@ -568,9 +563,9 @@ public class MovimientoPorCeldas : MonoBehaviour
 
         bool accionParada = !isMoving && (_attackingParado || _corteParado);
 
-        bool antorchaEquipada = EstaEquipadaAntorcha();
+        bool herramientaSinCombate = EstaEquipadaHerramientaSinCombate();
 
-        if (!isMoving && !accionParada && !antorchaEquipada && Input.GetKeyDown(KeyCode.Space)
+        if (!isMoving && !accionParada && !herramientaSinCombate && Input.GetKeyDown(KeyCode.Space)
             && inventario != null && inventario.TieneArmaEquipada)
         {
             var ataque = GetComponent<AtaqueyInteraccion>();
@@ -624,6 +619,25 @@ public class MovimientoPorCeldas : MonoBehaviour
                         }
                         continue;
                     }
+                    // Armadura con SkinsAnimaciones: en parado el Animator debe estar activo para estados
+                    // "AP/PA/Perfil Estatico" (rotar con Control+flecha). Si se apaga, el sprite se queda congelado.
+                    if (EsAnimatorRigArmadura(a))
+                    {
+                        if (inventario == null || inventario.slotArmadura == null)
+                        {
+                            a.enabled = false;
+                            continue;
+                        }
+                        a.enabled = true;
+                        if (!isMoving && !_attackingParado && !_corteParado)
+                        {
+                            string estadoArm = NombreEstadoEstatico(lastInputDirection);
+                            AnimatorStateInfo infoA = a.GetCurrentAnimatorStateInfo(0);
+                            if (!infoA.IsName(estadoArm))
+                                a.Play(estadoArm, 0, 0f);
+                        }
+                        continue;
+                    }
                     a.enabled = isMoving;
                 }
             }
@@ -632,6 +646,7 @@ public class MovimientoPorCeldas : MonoBehaviour
         SpriteRenderer srGizmo = spriteRenderer != null ? spriteRenderer : (_spriteForFlip != null ? _spriteForFlip : (_spriteForFlip = GetComponent<SpriteRenderer>() != null ? GetComponent<SpriteRenderer>() : GetComponentInChildren<SpriteRenderer>()));
         if (srGizmo != null) srGizmo.flipX = false;
 
+        // Sprites estáticos del cuerpo / pelo solo si hay referencias; la armadura se actualiza aparte para no depender del cuerpo.
         if (!isMoving && !accionParada && _spriteAP != null && _spritePA != null && _spritePerfilL != null && _spritePerfilR != null)
         {
             Sprite s = DireccionASpriteCuerpo(lastInputDirection);
@@ -639,10 +654,12 @@ public class MovimientoPorCeldas : MonoBehaviour
             {
                 if (_bodySpriteForSync != null) { _bodySpriteForSync.enabled = true; _bodySpriteForSync.flipX = false; _bodySpriteForSync.sprite = s; }
                 ActualizarPeinadoEstatico(lastInputDirection);
-                ActualizarArmaduraEstatica(lastInputDirection);
                 if (!_loggedStaticSpriteOnce) { _loggedStaticSpriteOnce = true; Debug.Log("MovimientoPorCeldas: sprite estatico aplicado (parado)."); }
             }
         }
+        // Sin rig Skins: sprites desde Resources. Con rig Skins: parado = Play(Estatico); caminar = Animator activo + parámetros (no apagar ni pisar sprites).
+        if (!isMoving && !accionParada && !ArmaduraUsaRigAnimadorSkins())
+            ActualizarArmaduraEstatica(lastInputDirection);
         if (isMoving && !_attackingParado && _bodySpriteForSync != null && _bodySpriteForSync.sprite != null)
         {
             string bodyName = _bodySpriteForSync.sprite.name;
@@ -656,19 +673,23 @@ public class MovimientoPorCeldas : MonoBehaviour
                 }
                 if (inventario != null && inventario.slotArmadura != null)
                 {
-                    Sprite armorSprite = CargarSpriteArmadura(armorSpritePrefix + suffix);
-                    if (armorSprite != null)
+                    if (!ArmaduraUsaRigAnimadorSkins())
                     {
-                        foreach (SpriteRenderer sr in GetComponentsInChildren<SpriteRenderer>(true))
+                        DesactivarAnimatorsRigArmadura();
+                        Sprite armorSprite = CargarSpriteArmadura(armorSpritePrefix + suffix);
+                        if (armorSprite != null)
                         {
-                            if (sr == null) continue;
-                            if (!sr.gameObject.name.Equals("armor", System.StringComparison.OrdinalIgnoreCase)) continue;
-                            var anim = sr.GetComponent<Animator>();
-                            if (anim != null) anim.enabled = false;
-                            sr.gameObject.SetActive(true);
-                            sr.enabled = true;
-                            sr.flipX = false;
-                            sr.sprite = armorSprite;
+                            foreach (SpriteRenderer sr in GetComponentsInChildren<SpriteRenderer>(true))
+                            {
+                                if (sr == null) continue;
+                                if (!EsSpriteRendererCapaArmaduraPersonaje(sr)) continue;
+                                var anim = sr.GetComponent<Animator>();
+                                if (anim != null) anim.enabled = false;
+                                sr.gameObject.SetActive(true);
+                                sr.enabled = true;
+                                sr.flipX = false;
+                                sr.sprite = armorSprite;
+                            }
                         }
                     }
                 }
@@ -810,7 +831,53 @@ public class MovimientoPorCeldas : MonoBehaviour
         animatorsHijos = GetComponentsInChildren<Animator>();
         animator = GetComponent<Animator>();
         if (animator == null) animator = GetComponentInChildren<Animator>();
+        ActualizarBodySpriteForSync();
         RefrescarSortingProfundidad();
+    }
+
+    /// <summary>
+    /// SpriteRenderer del cuerpo cuyo nombre de sprite se usa para sincronizar pelo y armadura al caminar.
+    /// Nunca debe ser el de la capa armadura: si el sprite contiene "Armadura" en el nombre se confundía con el cuerpo.
+    /// </summary>
+    void ActualizarBodySpriteForSync()
+    {
+        if (animatorsHijos == null) return;
+
+        SpriteRenderer mejorCuerpo = null;
+        foreach (var a in animatorsHijos)
+        {
+            if (a == null) continue;
+            var sr = a.GetComponent<SpriteRenderer>();
+            if (sr == null || sr.sprite == null) continue;
+            if (EsSpriteRendererCapaArmaduraPersonaje(sr)) continue;
+            string sn = sr.sprite.name ?? string.Empty;
+            if (sn.IndexOf("Cuerpo Base", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                _bodySpriteForSync = sr;
+                return;
+            }
+            if (mejorCuerpo == null &&
+                (sn.IndexOf(" AP ", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                 sn.IndexOf(" PA ", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                 sn.IndexOf(" Perfil L ", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                 sn.IndexOf(" Perfil R ", System.StringComparison.OrdinalIgnoreCase) >= 0))
+                mejorCuerpo = sr;
+        }
+
+        if (mejorCuerpo != null)
+        {
+            _bodySpriteForSync = mejorCuerpo;
+            return;
+        }
+
+        foreach (var a in animatorsHijos)
+        {
+            if (a == null) continue;
+            var sr = a.GetComponent<SpriteRenderer>();
+            if (sr == null || EsSpriteRendererCapaArmaduraPersonaje(sr)) continue;
+            _bodySpriteForSync = sr;
+            return;
+        }
     }
 
     void RefrescarSortingProfundidad()
@@ -862,16 +929,16 @@ public class MovimientoPorCeldas : MonoBehaviour
     {
         if (animatorsHijos == null) return;
         string estadoAtaque = NombreEstadoAtaque(lastInputDirection);
-        bool antorchaEquipada = EstaEquipadaAntorcha();
+        bool herramientaSinCombate = EstaEquipadaHerramientaSinCombate();
         foreach (var a in animatorsHijos)
         {
             if (a == null) continue;
-            // Si hay antorcha equipada, evitamos que el Animator del arma reproduzca
-            // animaciones de ataque/corte que heredan clips del controller base (p.ej. Hacha).
-            if (antorchaEquipada && _manoOTool != null && a.transform.IsChildOf(_manoOTool))
+            // Antorcha / martillo: no reproducir ataque/corte en el animator del arma.
+            if (herramientaSinCombate && _manoOTool != null && a.transform.IsChildOf(_manoOTool))
                 continue;
             a.enabled = true;
             a.Play(estadoAtaque, 0, 0f);
+            a.Update(0f);
         }
     }
 
@@ -879,15 +946,75 @@ public class MovimientoPorCeldas : MonoBehaviour
     {
         if (animatorsHijos == null) return;
         string estadoCorte = NombreEstadoCorte(lastInputDirection);
-        bool antorchaEquipada = EstaEquipadaAntorcha();
+        bool herramientaSinCombate = EstaEquipadaHerramientaSinCombate();
         foreach (var a in animatorsHijos)
         {
             if (a == null) continue;
-            if (antorchaEquipada && _manoOTool != null && a.transform.IsChildOf(_manoOTool))
+            if (herramientaSinCombate && _manoOTool != null && a.transform.IsChildOf(_manoOTool))
                 continue;
             a.enabled = true;
             a.Play(estadoCorte, 0, 0f);
+            a.Update(0f);
         }
+    }
+
+    Animator ObtenerAnimatorLiderCuerpo()
+    {
+        if (_bodySpriteForSync != null)
+        {
+            var anim = _bodySpriteForSync.GetComponent<Animator>();
+            if (anim != null) return anim;
+        }
+        return animator;
+    }
+
+    bool EsAnimatorEsclavoSincronizable(Animator a)
+    {
+        if (a == null) return false;
+        if (_manoOTool != null && a.transform.IsChildOf(_manoOTool))
+            return !EstaEquipadaHerramientaSinCombate();
+        return EsAnimatorRigArmadura(a);
+    }
+
+    /// <summary>
+    /// Iguala estado y tiempo normalizado del layer 0 al del cuerpo (después del update de Animator del frame).
+    /// </summary>
+    void SincronizarAnimadoresAccesoriosConLider()
+    {
+        Animator lider = ObtenerAnimatorLiderCuerpo();
+        if (lider == null || !lider.isActiveAndEnabled || lider.runtimeAnimatorController == null)
+            return;
+        if (animatorsHijos == null) return;
+
+        AnimatorStateInfo si;
+        if (lider.IsInTransition(0))
+            si = lider.GetNextAnimatorStateInfo(0);
+        else
+            si = lider.GetCurrentAnimatorStateInfo(0);
+
+        int pathHash = si.fullPathHash;
+        if (pathHash == 0) return;
+
+        float nt = si.normalizedTime % 1f;
+        if (float.IsNaN(nt) || float.IsInfinity(nt)) nt = 0f;
+
+        foreach (var a in animatorsHijos)
+        {
+            if (a == null || a == lider || !a.isActiveAndEnabled) continue;
+            if (!EsAnimatorEsclavoSincronizable(a)) continue;
+            if (a.runtimeAnimatorController == null) continue;
+
+            a.Play(pathHash, 0, nt);
+            a.Update(0f);
+        }
+    }
+
+    /// <summary>
+    /// Antorcha (controller con "Antorcha") o martillo de constructor (override "Martillo de Constructor"): sin ataque a cuerpo.
+    /// </summary>
+    bool EstaEquipadaHerramientaSinCombate()
+    {
+        return EstaEquipadaAntorcha() || EstaEquipadaMartilloConstructor();
     }
 
     /// <summary>
@@ -910,6 +1037,28 @@ public class MovimientoPorCeldas : MonoBehaviour
                 return true;
         }
 
+        return false;
+    }
+
+    static bool EsAnimatorMartilloConstructor(Animator a)
+    {
+        if (a == null) return false;
+        var ctrl = a.runtimeAnimatorController;
+        if (ctrl == null) return false;
+        string n = ctrl.name;
+        return !string.IsNullOrEmpty(n) && n.Contains("Martillo");
+    }
+
+    bool EstaEquipadaMartilloConstructor()
+    {
+        if (_manoOTool == null || animatorsHijos == null) return false;
+        foreach (var a in animatorsHijos)
+        {
+            if (a == null) continue;
+            if (!a.transform.IsChildOf(_manoOTool)) continue;
+            if (EsAnimatorMartilloConstructor(a))
+                return true;
+        }
         return false;
     }
 
@@ -984,6 +1133,54 @@ public class MovimientoPorCeldas : MonoBehaviour
         return s;
     }
 
+    /// <summary>
+    /// True para el SpriteRenderer de la capa de armadura del personaje (no UI).
+    /// Acepta el nombre antiguo "armor" y nombres como "Armadura", "Armadura 2" tras renombrar jerarquías.
+    /// </summary>
+    static bool EsSpriteRendererCapaArmaduraPersonaje(SpriteRenderer sr)
+    {
+        if (sr == null) return false;
+        string n = sr.gameObject.name ?? string.Empty;
+        if (n.Equals("armor", System.StringComparison.OrdinalIgnoreCase)) return true;
+        if (n.IndexOf("Slot", System.StringComparison.OrdinalIgnoreCase) >= 0 &&
+            n.IndexOf("Armadura", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            return false;
+        return n.IndexOf("Armadura", System.StringComparison.OrdinalIgnoreCase) >= 0;
+    }
+
+    /// <summary>Animator de la capa armadura (SkinsAnimaciones + hijos con sprite de armadura). No el del arma.</summary>
+    bool EsAnimatorRigArmadura(Animator a)
+    {
+        if (a == null || a.GetComponent<SkinsAnimaciones>() == null) return false;
+        foreach (var sr in a.GetComponentsInChildren<SpriteRenderer>(true))
+        {
+            if (EsSpriteRendererCapaArmaduraPersonaje(sr))
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>Armadura con SkinsAnimaciones + Override: se anima por parámetros al caminar y Play(Estatico) al parar (no sincronía manual por sprites).</summary>
+    bool ArmaduraUsaRigAnimadorSkins()
+    {
+        if (inventario == null || inventario.slotArmadura == null) return false;
+        foreach (var a in GetComponentsInChildren<Animator>(true))
+        {
+            if (EsAnimatorRigArmadura(a))
+                return true;
+        }
+        return false;
+    }
+
+    void DesactivarAnimatorsRigArmadura()
+    {
+        foreach (var a in GetComponentsInChildren<Animator>(true))
+        {
+            if (EsAnimatorRigArmadura(a))
+                a.enabled = false;
+        }
+    }
+
     void ActualizarArmaduraEstatica(Vector2 direction)
     {
         if (inventario == null || inventario.slotArmadura == null)
@@ -997,7 +1194,7 @@ public class MovimientoPorCeldas : MonoBehaviour
         foreach (SpriteRenderer sr in GetComponentsInChildren<SpriteRenderer>(true))
         {
             if (sr == null) continue;
-            if (!sr.gameObject.name.Equals("armor", System.StringComparison.OrdinalIgnoreCase)) continue;
+            if (!EsSpriteRendererCapaArmaduraPersonaje(sr)) continue;
             var anim = sr.GetComponent<Animator>();
             if (anim != null) anim.enabled = false;
             sr.gameObject.SetActive(true);
@@ -1012,7 +1209,7 @@ public class MovimientoPorCeldas : MonoBehaviour
         foreach (SpriteRenderer sr in GetComponentsInChildren<SpriteRenderer>(true))
         {
             if (sr == null) continue;
-            if (!sr.gameObject.name.Equals("armor", System.StringComparison.OrdinalIgnoreCase)) continue;
+            if (!EsSpriteRendererCapaArmaduraPersonaje(sr)) continue;
             sr.gameObject.SetActive(false);
         }
     }

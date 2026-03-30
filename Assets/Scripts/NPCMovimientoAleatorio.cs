@@ -67,7 +67,10 @@ public class NPCMovimientoAleatorio : MonoBehaviour
     [SerializeField] private Sprite spriteCadaver;
     [Tooltip("Prefab del cadáver con inventario interactuable (CadaverInteractuable). Si se asigna, se instancia en vez del sprite simple.")]
     [SerializeField] private GameObject prefabCadaver;
-    [Tooltip("Prefab de Carne de conejo para el inventario del cadáver. Asignar en el conejo o en el prefab del cadáver.")]
+    [Header("Botín del cadáver")]
+    [Tooltip("Si tiene al menos una entrada, define el inventario inicial del cadáver (prefab + cantidad por slot). Tiene prioridad sobre carne legacy.")]
+    [SerializeField] private LootInicialCadaverEntrada[] lootInicialCadaver;
+    [Tooltip("Solo si lootInicialCadaver está vacío: prefab de carne (compatibilidad).")]
     [SerializeField] private GameObject prefabCarneConejo;
 
     private int vidaActual;
@@ -488,7 +491,9 @@ public class NPCMovimientoAleatorio : MonoBehaviour
                     var jugador = FindObjectOfType<Inventario>();
                     if (jugador != null)
                         cadaverInteract.inventarioJugador = jugador;
-                    if (prefabCarneConejo != null)
+                    if (lootInicialCadaver != null && lootInicialCadaver.Length > 0)
+                        cadaverInteract.EstablecerLootDesdeNPC(lootInicialCadaver);
+                    else if (prefabCarneConejo != null)
                         cadaverInteract.prefabCarneConejo = prefabCarneConejo;
                 }
             }

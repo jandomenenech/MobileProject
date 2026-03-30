@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u: tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a23b10556a29ea42b4be23eacd5b6c4, type: 3}
+  m_Name: Martillo de Constructor DatosArma
+  m_EditorClassIdentifier: Assembly-CSharp::DatosArma
+  prefabVisual: {fileID: 8660992049680588408, guid: c53925fb4b5e4424e8c8d33df3afd243, type: 3}
+  spritePrefix: Martillo de Constructor
+  spritesResourcePath: Sprites/Herramientas/Martillo de Constructor/
+  attackSpritesResourcePath: Sprites/Herramientas/Martillo de Constructor/

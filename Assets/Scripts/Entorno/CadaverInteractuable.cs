@@ -18,11 +18,20 @@ public class CadaverInteractuable : MonoBehaviour
     [Tooltip("Número de slots del inventario del cadáver.")]
     public int cantidadSlots = 6;
 
+    [Header("Botín inicial (varios objetos)")]
+    [Tooltip("Lista de objetos iniciales: cada entrada ocupa un slot consecutivo (0, 1, 2…). Tiene prioridad sobre carne legacy si no se asigna desde el NPC.")]
+    public LootInicialCadaverEntrada[] lootInicial;
+
     [Tooltip("Prefab de Carne de conejo para rellenar inicialmente (conejo). Asignar en el prefab del cadáver.")]
     public GameObject prefabCarneConejo;
 
     [Tooltip("Cantidad de carne de conejo inicial en el slot 0 (solo para cadáver de conejo).")]
     public int cantidadCarneInicial = 1;
+
+    /// <summary>
+    /// Si el NPC asigna botín al instanciar el cadáver, se usa en lugar de lootInicial del prefab.
+    /// </summary>
+    private LootInicialCadaverEntrada[] _lootDesdeNpc;
 
     private List<GameObject> _contenido;
     private List<int> _cantidades;
@@ -44,8 +53,38 @@ public class CadaverInteractuable : MonoBehaviour
         InicializarContenido();
     }
 
+    /// <summary>Llamado desde el NPC justo después de instanciar el cadáver (antes de Start).</summary>
+    public void EstablecerLootDesdeNPC(LootInicialCadaverEntrada[] entradas)
+    {
+        _lootDesdeNpc = entradas;
+    }
+
     private void InicializarContenido()
     {
+        LootInicialCadaverEntrada[] fuente = null;
+        if (_lootDesdeNpc != null && _lootDesdeNpc.Length > 0)
+            fuente = _lootDesdeNpc;
+        else if (lootInicial != null && lootInicial.Length > 0)
+            fuente = lootInicial;
+
+        if (fuente != null && fuente.Length > 0)
+        {
+            int slot = 0;
+            foreach (var e in fuente)
+            {
+                if (e == null || e.prefab == null) continue;
+                int c = Mathf.Max(1, e.cantidad);
+                if (slot >= _contenido.Count) break;
+                GameObject go = Instantiate(e.prefab);
+                go.name = e.prefab.name;
+                go.SetActive(false);
+                _contenido[slot] = go;
+                _cantidades[slot] = c;
+                slot++;
+            }
+            return;
+        }
+
         if (prefabCarneConejo != null && cantidadCarneInicial > 0)
         {
             GameObject carne = Instantiate(prefabCarneConejo);

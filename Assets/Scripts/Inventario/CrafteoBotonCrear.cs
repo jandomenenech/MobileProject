@@ -11,6 +11,9 @@ using UnityEngine.UI;
 /// </summary>
 public class CrafteoBotonCrear : MonoBehaviour, IPointerClickHandler, IPointerDownHandler, IPointerUpHandler, IPointerExitHandler
 {
+    [Tooltip("Raíz del menú al que pertenece este botón. Si se asigna, las búsquedas automáticas se limitan a esta jerarquía.")]
+    public Transform raizMenu;
+
     [Header("Sprite al pulsar")]
     [Tooltip("Sprite que se muestra mientras se mantiene pulsado el botón. Si está vacío, no se cambia el sprite.")]
     public Sprite spritePulsado;
@@ -122,7 +125,18 @@ public class CrafteoBotonCrear : MonoBehaviour, IPointerClickHandler, IPointerDo
     void ResolverReferencias()
     {
         if (catalogo == null)
-            catalogo = FindFirstObjectByType<CrafteoCatalogoGrid>();
+        {
+            var raiz = ObtenerRaizBusqueda();
+            if (raiz != null)
+                catalogo = BuscarComponenteMasCercanoEnRaiz<CrafteoCatalogoGrid>(raiz);
+
+            if (catalogo == null)
+            {
+                var catalogos = FindObjectsByType<CrafteoCatalogoGrid>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+                if (catalogos != null && catalogos.Length == 1)
+                    catalogo = catalogos[0];
+            }
+        }
         if (inventarioJugador == null && jugador != null)
             inventarioJugador = jugador.GetComponent<Inventario>();
         if (inventarioJugador == null)
@@ -134,9 +148,32 @@ public class CrafteoBotonCrear : MonoBehaviour, IPointerClickHandler, IPointerDo
         if (inventarioJugador == null)
             inventarioJugador = FindFirstObjectByType<Inventario>();
         if (slotPendiente == null)
-            slotPendiente = FindFirstObjectByType<CrafteoSlotPendiente>();
+        {
+            var raiz = ObtenerRaizBusqueda();
+            if (raiz != null)
+                slotPendiente = BuscarComponenteMasCercanoEnRaiz<CrafteoSlotPendiente>(raiz);
+
+            if (slotPendiente == null)
+            {
+                var slotsPendientes = FindObjectsByType<CrafteoSlotPendiente>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+                if (slotsPendientes != null && slotsPendientes.Length == 1)
+                    slotPendiente = slotsPendientes[0];
+            }
+        }
+
         if (barraProgreso == null)
-            barraProgreso = FindFirstObjectByType<CrafteoBarraProgreso>(FindObjectsInactive.Include);
+        {
+            var raiz = ObtenerRaizBusqueda();
+            if (raiz != null)
+                barraProgreso = BuscarComponenteMasCercanoEnRaiz<CrafteoBarraProgreso>(raiz);
+
+            if (barraProgreso == null)
+            {
+                var barras = FindObjectsByType<CrafteoBarraProgreso>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+                if (barras != null && barras.Length == 1)
+                    barraProgreso = barras[0];
+            }
+        }
     }
 
     /// <summary>
@@ -314,5 +351,67 @@ public class CrafteoBotonCrear : MonoBehaviour, IPointerClickHandler, IPointerDo
                 }
             }
         }
+    }
+
+    private Transform ObtenerRaizBusqueda()
+    {
+        if (raizMenu != null)
+            return raizMenu;
+
+        var canvasPadre = GetComponentInParent<Canvas>(true);
+        return canvasPadre != null ? canvasPadre.transform : transform.root;
+    }
+
+    private T BuscarComponenteMasCercanoEnRaiz<T>(Transform raiz) where T : Component
+    {
+        if (raiz == null) return null;
+
+        var candidatos = raiz.GetComponentsInChildren<T>(true);
+        if (candidatos == null || candidatos.Length == 0) return null;
+
+        T mejor = null;
+        int mejorDistancia = int.MaxValue;
+        for (int i = 0; i < candidatos.Length; i++)
+        {
+            var candidato = candidatos[i];
+            if (candidato == null || candidato.transform == transform) continue;
+
+            int distancia = DistanciaJerarquica(transform, candidato.transform);
+            if (distancia < mejorDistancia)
+            {
+                mejorDistancia = distancia;
+                mejor = candidato;
+            }
+        }
+
+        return mejor;
+    }
+
+    private int DistanciaJerarquica(Transform origen, Transform destino)
+    {
+        if (origen == null || destino == null) return int.MaxValue;
+        if (origen == destino) return 0;
+
+        Dictionary<Transform, int> distanciasOrigen = new Dictionary<Transform, int>();
+        int pasos = 0;
+        Transform actual = origen;
+        while (actual != null)
+        {
+            distanciasOrigen[actual] = pasos;
+            pasos++;
+            actual = actual.parent;
+        }
+
+        pasos = 0;
+        actual = destino;
+        while (actual != null)
+        {
+            if (distanciasOrigen.TryGetValue(actual, out int desdeOrigen))
+                return desdeOrigen + pasos;
+            pasos++;
+            actual = actual.parent;
+        }
+
+        return int.MaxValue;
     }
 }

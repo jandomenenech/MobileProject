@@ -9,8 +9,14 @@ using UnityEngine.UI;
 /// </summary>
 public class CrafteoRecetaSlots : MonoBehaviour
 {
+    [Tooltip("Raíz del menú al que pertenece este sistema. Si se asigna, todas las búsquedas automáticas se limitan a esta jerarquía.")]
+    public Transform raizMenu;
+
     [Tooltip("Slots donde se muestran los ingredientes. Si está vacío se usan los hijos directos.")]
     public List<Image> slots = new List<Image>();
+
+    [Tooltip("Prefijos válidos para detectar slots automáticamente por nombre.")]
+    public List<string> prefijosNombreSlot = new List<string> { "Menú Construcción slot", "Menú crafteo slot" };
 
     [Tooltip("Inventario del jugador. Si está asignado, las cantidades se pintan en rojo cuando faltan y en blanco cuando tienes suficiente.")]
     public Inventario inventarioJugador;
@@ -24,15 +30,9 @@ public class CrafteoRecetaSlots : MonoBehaviour
     void Awake()
     {
         if (slots == null || slots.Count == 0)
-        {
-            slots = new List<Image>();
-            foreach (Transform child in transform)
-            {
-                Image img = child.GetComponent<Image>();
-                if (img != null)
-                    slots.Add(img);
-            }
-        }
+            ReconstruirSlotsDesdeJerarquia();
+
+        ResolverReferenciasLocales();
     }
 
     /// <summary>
@@ -48,7 +48,7 @@ public class CrafteoRecetaSlots : MonoBehaviour
         }
 
         if (inventarioJugador == null)
-            inventarioJugador = FindFirstObjectByType<Inventario>();
+            ResolverReferenciasLocales();
 
         for (int i = 0; i < (slots != null ? slots.Count : 0); i++)
         {
@@ -85,7 +85,7 @@ public class CrafteoRecetaSlots : MonoBehaviour
     {
         if (!gameObject.activeInHierarchy) return;
         if (catalogo == null)
-            catalogo = FindFirstObjectByType<CrafteoCatalogoGrid>();
+            ResolverReferenciasLocales();
         if (catalogo == null) return;
 
         if (Time.unscaledTime - _ultimoRefresh < IntervaloRefresh) return;
@@ -170,5 +170,140 @@ public class CrafteoRecetaSlots : MonoBehaviour
             txt.text = cantidad > 0 ? cantidad.ToString() : string.Empty;
             txt.gameObject.SetActive(cantidad > 0);
         }
+    }
+
+    private void ResolverReferenciasLocales()
+    {
+        if (inventarioJugador == null)
+        {
+            var raiz = ObtenerRaizBusqueda();
+            if (raiz != null)
+                inventarioJugador = raiz.GetComponentInChildren<Inventario>(true);
+        }
+        if (inventarioJugador == null)
+            inventarioJugador = FindFirstObjectByType<Inventario>();
+
+        if (catalogo == null)
+        {
+            var raiz = ObtenerRaizBusqueda();
+            if (raiz != null)
+                catalogo = BuscarComponenteMasCercanoEnRaiz<CrafteoCatalogoGrid>(raiz);
+        }
+
+        if (catalogo == null)
+        {
+            var todosCatalogos = FindObjectsByType<CrafteoCatalogoGrid>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            if (todosCatalogos != null && todosCatalogos.Length == 1)
+                catalogo = todosCatalogos[0];
+        }
+    }
+
+    private Transform ObtenerRaizBusqueda()
+    {
+        if (raizMenu != null)
+            return raizMenu;
+
+        var canvasPadre = GetComponentInParent<Canvas>(true);
+        return canvasPadre != null ? canvasPadre.transform : transform.root;
+    }
+
+    private T BuscarComponenteMasCercanoEnRaiz<T>(Transform raiz) where T : Component
+    {
+        if (raiz == null) return null;
+
+        var candidatos = raiz.GetComponentsInChildren<T>(true);
+        if (candidatos == null || candidatos.Length == 0) return null;
+
+        T mejor = null;
+        int mejorDistancia = int.MaxValue;
+        for (int i = 0; i < candidatos.Length; i++)
+        {
+            var candidato = candidatos[i];
+            if (candidato == null || candidato.transform == transform) continue;
+
+            int distancia = DistanciaJerarquica(transform, candidato.transform);
+            if (distancia < mejorDistancia)
+            {
+                mejorDistancia = distancia;
+                mejor = candidato;
+            }
+        }
+
+        return mejor;
+    }
+
+    private int DistanciaJerarquica(Transform origen, Transform destino)
+    {
+        if (origen == null || destino == null) return int.MaxValue;
+        if (origen == destino) return 0;
+
+        Dictionary<Transform, int> distanciasOrigen = new Dictionary<Transform, int>();
+        int pasos = 0;
+        Transform actual = origen;
+        while (actual != null)
+        {
+            distanciasOrigen[actual] = pasos;
+            pasos++;
+            actual = actual.parent;
+        }
+
+        pasos = 0;
+        actual = destino;
+        while (actual != null)
+        {
+            if (distanciasOrigen.TryGetValue(actual, out int desdeOrigen))
+                return desdeOrigen + pasos;
+            pasos++;
+            actual = actual.parent;
+        }
+
+        return int.MaxValue;
+    }
+
+    private void ReconstruirSlotsDesdeJerarquia()
+    {
+        slots = new List<Image>();
+
+        var imagenes = GetComponentsInChildren<Image>(true);
+        if (imagenes == null || imagenes.Length == 0)
+            return;
+
+        for (int i = 0; i < imagenes.Length; i++)
+        {
+            Image img = imagenes[i];
+            if (img == null || img.transform == transform) continue;
+            if (EsNombreSlotValido(img.gameObject.name))
+                slots.Add(img);
+        }
+
+        if (slots.Count > 0)
+            return;
+
+        // Fallback: mantener comportamiento antiguo con hijos directos.
+        foreach (Transform child in transform)
+        {
+            Image img = child.GetComponent<Image>();
+            if (img != null)
+                slots.Add(img);
+        }
+    }
+
+    private bool EsNombreSlotValido(string nombre)
+    {
+        if (string.IsNullOrEmpty(nombre))
+            return false;
+
+        if (prefijosNombreSlot == null || prefijosNombreSlot.Count == 0)
+            return true;
+
+        for (int i = 0; i < prefijosNombreSlot.Count; i++)
+        {
+            string prefijo = prefijosNombreSlot[i];
+            if (string.IsNullOrWhiteSpace(prefijo)) continue;
+            if (nombre.StartsWith(prefijo, System.StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        return false;
     }
 }

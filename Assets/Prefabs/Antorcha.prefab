@@ -82,7 +82,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 154943973
-  m_SortingLayer: 7
+  m_SortingLayer: 8
   m_SortingOrder: 81
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: f3db7a75963ca3a44ad6a3883ed1c446, type: 3}
@@ -186,7 +186,7 @@ MonoBehaviour:
   m_Intensity: 0.8
   m_LightVolumeIntensity: 1
   m_LightVolumeEnabled: 0
-  m_ApplyToSortingLayers: 000000001fae5556cde5417299162241f145ac84cb9d2176c7d6aacde5413c0935cec94ebfe7c77de15dfb34
+  m_ApplyToSortingLayers: 000000001fae5556cde5417299162241f145ac841f4f44bfcb9d2176c7d6aacde5413c0935cec94ebfe7c77de15dfb34
   m_LightCookieSprite: {fileID: 0}
   m_DeprecatedPointLightCookieSprite: {fileID: 0}
   m_LightOrder: 0
@@ -393,7 +393,7 @@ MonoBehaviour:
   m_Intensity: 1
   m_LightVolumeIntensity: 1
   m_LightVolumeEnabled: 0
-  m_ApplyToSortingLayers: 000000001fae5556cde5417299162241f145ac84cb9d2176c7d6aacde5413c0935cec94ebfe7c77de15dfb34
+  m_ApplyToSortingLayers: 000000001fae5556cde5417299162241f145ac841f4f44bfcb9d2176c7d6aacde5413c0935cec94ebfe7c77de15dfb34
   m_LightCookieSprite: {fileID: 0}
   m_DeprecatedPointLightCookieSprite: {fileID: 0}
   m_LightOrder: 0
