@@ -5,6 +5,9 @@ using UnityEngine;
 [DefaultExecutionOrder(100)]
 public class Inventario : MonoBehaviour
 {
+    private const string ArmorSpritePrefixDefault = "Armadura 2";
+    private const string ArmorResourcesPathDefault = "Sprites/Armadura/Armadura 2/Sprites/";
+
     public List<GameObject> inventario;
     // Cantidad por slot (1 = objeto único, >1 = acumulado)
     [SerializeField] private List<int> cantidades;
@@ -36,6 +39,12 @@ public class Inventario : MonoBehaviour
     [HideInInspector] public GameObject slotArmadura;
     [Tooltip("Visual de la armadura equipada (se activa al tener armadura en el slot). Asigna el GameObject que muestra Armadura 2.")]
     public GameObject armaduraEquipadaVisual;
+    private GameObject _visualArmaduraActual;
+    private string _armaduraSpritePrefixActual = ArmorSpritePrefixDefault;
+    private string _armaduraResourcesPathActual = ArmorResourcesPathDefault;
+    public string ArmaduraSpritePrefixActual => _armaduraSpritePrefixActual;
+    public string ArmaduraResourcesPathActual => _armaduraResourcesPathActual;
+    public GameObject VisualArmaduraActual => _visualArmaduraActual;
 
     public bool isActive = false;
 
@@ -1235,9 +1244,23 @@ public class Inventario : MonoBehaviour
 
     public void EquiparArmadura(GameObject obj)
     {
-        GameObject visual = ObtenerVisualArmadura();
+        var config = ObjetoRecogible.ObtenerConfiguracionArmadura(obj);
+        string nombreVisual = config != null ? config.nombreVisualEnPersonaje : null;
+        _armaduraSpritePrefixActual = config != null && !string.IsNullOrWhiteSpace(config.spritePrefix)
+            ? config.spritePrefix
+            : ArmorSpritePrefixDefault;
+        _armaduraResourcesPathActual = config != null && !string.IsNullOrWhiteSpace(config.resourcesPath)
+            ? config.resourcesPath
+            : ArmorResourcesPathDefault;
+
+        GameObject visual = ObtenerVisualArmadura(nombreVisual);
+        if (visual == null)
+            visual = ObtenerVisualArmadura();
+
+        DesactivarTodosVisualesArmadura();
         if (visual != null)
         {
+            _visualArmaduraActual = visual;
             visual.SetActive(true);
             // Activar tambien los padres (ej. "body") para que el armor sea visible
             Transform p = visual.transform.parent;
@@ -1250,14 +1273,27 @@ public class Inventario : MonoBehaviour
             Debug.Log("[Inventario] Armadura equipada: activado '" + visual.name + "'");
         }
         else
+        {
+            _visualArmaduraActual = null;
             Debug.LogWarning("[Inventario] No se encontro el visual de armadura (objeto 'armor') en el personaje.");
+        }
 
         var move = GetComponent<MovimientoPorCeldas>();
         if (move != null) move.RefrescarAnimatorsHijos();
     }
 
-    GameObject ObtenerVisualArmadura()
+    GameObject ObtenerVisualArmadura(string nombreVisualPreferido = null)
     {
+        if (!string.IsNullOrWhiteSpace(nombreVisualPreferido))
+        {
+            Transform dondePreferido = transform;
+            foreach (Transform t in dondePreferido.GetComponentsInChildren<Transform>(true))
+            {
+                if (t == dondePreferido) continue;
+                if (t.name.Equals(nombreVisualPreferido, System.StringComparison.OrdinalIgnoreCase))
+                    return t.gameObject;
+            }
+        }
         if (armaduraEquipadaVisual != null) return armaduraEquipadaVisual;
         // Buscar solo en el personaje (no en transform.root para no pillar el UI "Slot Armadura")
         Transform donde = transform;
@@ -1278,11 +1314,26 @@ public class Inventario : MonoBehaviour
         return null;
     }
 
+    void DesactivarTodosVisualesArmadura()
+    {
+        foreach (Transform t in transform.GetComponentsInChildren<Transform>(true))
+        {
+            if (t == transform) continue;
+            string n = t.name ?? string.Empty;
+            if (n.Equals("armor", System.StringComparison.OrdinalIgnoreCase) ||
+                n.IndexOf("Armadura", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                t.gameObject.SetActive(false);
+            }
+        }
+    }
+
     public void DesequiparArmadura()
     {
-        GameObject visual = ObtenerVisualArmadura();
-        if (visual != null)
-            visual.SetActive(false);
+        _visualArmaduraActual = null;
+        _armaduraSpritePrefixActual = ArmorSpritePrefixDefault;
+        _armaduraResourcesPathActual = ArmorResourcesPathDefault;
+        DesactivarTodosVisualesArmadura();
 
         var move = GetComponent<MovimientoPorCeldas>();
         if (move != null) move.RefrescarAnimatorsHijos();

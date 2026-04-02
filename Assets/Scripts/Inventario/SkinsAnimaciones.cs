@@ -35,16 +35,10 @@ public class SkinsAnimaciones : MonoBehaviour
     {
         if (animator == null) return;
 
-        // Con el Animator del personaje raíz asignado como "player", al estar parado MovimientoPorCeldas
-        // desactiva ese Animator: GetFloat/GetBool pueden quedar desfasados. La fuente fiable es MovimientoPorCeldas.
+        // Fuente principal: MovimientoPorCeldas. Evita depender de una referencia "player" mal asignada
+        // en un rig concreto de armadura (p. ej. Armadura 1) y mantiene sincronía estable.
         MovimientoPorCeldas move = GetComponentInParent<MovimientoPorCeldas>();
-        bool usarMovimiento =
-            move != null &&
-            (player == null ||
-             !player.isActiveAndEnabled ||
-             player.runtimeAnimatorController == null);
-
-        if (usarMovimiento)
+        if (move != null)
         {
             Vector2 d = move.GetLastInputDirection();
             animator.SetFloat("Horizontal", d.x);

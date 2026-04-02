@@ -13,6 +13,17 @@ public enum CategoriaObjeto
     Acumulable = 5
 }
 
+[System.Serializable]
+public class ConfiguracionVisualArmadura
+{
+    [Tooltip("Nombre del GameObject visual de la armadura en la jerarquia del jugador (ej: 'Armadura 1', 'Armadura 2' o 'armor').")]
+    public string nombreVisualEnPersonaje;
+    [Tooltip("Prefijo de sprites de la armadura para cargar por Resources (ej: 'Armadura 1').")]
+    public string spritePrefix;
+    [Tooltip("Ruta en Resources donde estan los sprites de la armadura (sin incluir el nombre de sprite).")]
+    public string resourcesPath;
+}
+
 public class ObjetoRecogible : MonoBehaviour
 {
     private const string TagConstruccionColocable = "ConstruccionColocable";
@@ -23,6 +34,10 @@ public class ObjetoRecogible : MonoBehaviour
     [Header("Datos equipables (Arma/Herramienta)")]
     [Tooltip("Asigna un asset DatosArma para que el sistema de equipamiento sepa qué prefab visual instanciar.")]
     public DatosArma datosArma;
+
+    [Header("Datos visuales de armadura (Categoria Armadura)")]
+    [Tooltip("Configura qué visual de armadura del personaje se activa y desde qué ruta/prefijo cargar sprites.")]
+    public ConfiguracionVisualArmadura configuracionArmadura;
 
     public bool esRecogido = false;
     public GameObject player;
@@ -58,6 +73,13 @@ public class ObjetoRecogible : MonoBehaviour
         if (obj == null) return null;
         var rec = obj.GetComponent<ObjetoRecogible>();
         return rec != null ? rec.datosArma : null;
+    }
+
+    public static ConfiguracionVisualArmadura ObtenerConfiguracionArmadura(GameObject obj)
+    {
+        if (obj == null) return null;
+        var rec = obj.GetComponent<ObjetoRecogible>();
+        return rec != null ? rec.configuracionArmadura : null;
     }
 
     void Start()

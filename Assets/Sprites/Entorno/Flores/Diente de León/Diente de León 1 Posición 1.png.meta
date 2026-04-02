@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: bda8cf7310ae37042a0a29a127d19aef
+guid: 972b25b53442b9d41a901854c3b6fbed
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -3860874420493981058
-    second: Armadura 1 Perfil L 3 Atacar_0
+      213: -7341303847748795335
+    second: "Diente de Le\xF3n 1 Posici\xF3n 1_0"
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -49,8 +49,8 @@ TextureImporter:
   spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
-  alignment: 9
-  spritePivot: {x: 0.5, y: 0.4}
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 13
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Armadura 1 Perfil L 3 Atacar_0
+      name: "Diente de Le\xF3n 1 Posici\xF3n 1_0"
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 39
-        height: 39
+        x: 2
+        y: 1
+        width: 9
+        height: 10
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e7a601c9b2b6b6ac0800000000000000
-      internalID: -3860874420493981058
+      spriteID: 93489bedb037e1a90800000000000000
+      internalID: -7341303847748795335
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Armadura 1 Perfil L 3 Atacar_0: -3860874420493981058
+      "Diente de Le\xF3n 1 Posici\xF3n 1_0": -7341303847748795335
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
