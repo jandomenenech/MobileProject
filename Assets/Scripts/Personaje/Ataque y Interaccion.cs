@@ -86,7 +86,6 @@ public class AtaqueyInteraccion : MonoBehaviour
                 }
             }
 
-            // Criaturas/NPCs (conejo u otros que usen NPCMovimientoAleatorio)
             var npc = collision.GetComponent<NPCMovimientoAleatorio>();
             if (npc != null)
             {

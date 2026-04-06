@@ -762,23 +762,7 @@ public class MovimientoPorCeldas : MonoBehaviour
 
     bool IsCellOccupiedByEntity(Vector2 cellCenter)
     {
-        Vector2 checkPoint = cellCenter;
-        if (mapGrid != null)
-        {
-            Vector3Int cell = mapGrid.WorldToCell(cellCenter);
-            checkPoint = mapGrid.GetCellCenterWorld(cell);
-        }
-        Collider2D[] hits = Physics2D.OverlapCircleAll(checkPoint, 0.3f);
-        foreach (var hit in hits)
-        {
-            if (hit.transform.root == transform.root) continue;
-            if (hit.isTrigger) continue;
-            int layer = hit.gameObject.layer;
-            if (((1 << layer) & _effectiveMapLayers) != 0) continue;
-            if (hit.GetComponent<NPCMovimientoAleatorio>() != null)
-                return true;
-        }
-        return false;
+        return CeldaOcupacionUtil.EstaCeldaOcupadaPorEntidad(mapGrid, cellCenter, _effectiveMapLayers, transform.root);
     }
 
     // Permite a otros scripts obtener la direcci?n actual

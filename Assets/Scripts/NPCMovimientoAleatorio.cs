@@ -24,7 +24,11 @@ public class NPCMovimientoAleatorio : MonoBehaviour
     [SerializeField] private LayerMask mapColliderLayers;
     [Tooltip("Grid del tilemap para alinear el chequeo con las celdas (opcional).")]
     [SerializeField] private Grid mapGrid;
+    [Tooltip("Si está activo, no entra en celdas donde haya un Collider2D con tag Flora (no trigger) en el centro de la celda. Desactívalo en NPCs que deben atravesar la flora.")]
+    [SerializeField] private bool floraBloqueaMovimiento;
     private LayerMask _effectiveMapLayers;
+
+    private const string TagFlora = "Flora";
 
     [Header("Comportamiento aleatorio")]
     [Tooltip("Tiempo mínimo de pausa entre movimientos (segundos).")]
@@ -43,14 +47,30 @@ public class NPCMovimientoAleatorio : MonoBehaviour
     [Tooltip("Celdas que avanza al huir (puede ser distinto al movimiento normal).")]
     [SerializeField] private int celdasPorHuida = 2;
 
-    [Header("Animador (conejo)")]
+    [Header("Animador")]
     [SerializeField] private Animator animator;
     [SerializeField] private SpriteRenderer spriteRenderer;
+    [Tooltip("Nombres de estados de caminar en el Animator Controller (capa 0).")]
+    [SerializeField] private string estadoCaminarAP = "Conejo Caminar AP";
+    [SerializeField] private string estadoCaminarPA = "Conejo Caminar PA";
+    [SerializeField] private string estadoCaminarPerfil = "Conejo Caminar Perfil";
+    [Tooltip("Si los tres están vacíos, al parar se congela el clip de caminar (conejo). Si los rellenas, al parar se usa el estado estático correspondiente (p. ej. jabalí).")]
+    [SerializeField] private string estadoEstaticoAP = "";
+    [SerializeField] private string estadoEstaticoPA = "";
+    [SerializeField] private string estadoEstaticoPerfil = "";
 
-    // Nombres de estados del Animator del conejo (si usas otro controlador, ajústalos)
-    private const string EstadoAP = "Conejo Caminar AP";
-    private const string EstadoPA = "Conejo Caminar PA";
-    private const string EstadoPerfil = "Conejo Caminar Perfil";
+    [Header("Contraataque y persecución (p. ej. jabalí)")]
+    [Tooltip("Tras un golpe (si sigue vivo), persigue al jugador sin límite de tiempo, ataca en celdas adyacentes mirando hacia él. Los Animation Events deben ir en el mismo GameObject que este script (el que tiene el Animator). Función: OnContraataqueImpacto / OnContraataqueFinalizado.")]
+    [SerializeField] private bool habilitarContraataque;
+    [SerializeField] private string estadoAtaqueAP = "";
+    [SerializeField] private string estadoAtaquePA = "";
+    [SerializeField] private string estadoAtaquePerfil = "";
+    [Tooltip("Pausa entre pasos al perseguir (segundos). También marca el tiempo mínimo entre un ataque y el siguiente si sigues adyacente al jugador.")]
+    [SerializeField] private float pausaEntrePasosPersecucion = 0.2f;
+    [Tooltip("Si el clip no dispara OnContraataqueFinalizado, el jabalí quedaría bloqueado: tras este tiempo se fuerza el fin del ataque y sigue persiguiendo. Pon algo mayor que la duración real del clip.")]
+    [SerializeField] private float tiempoMaximoClipAtaqueSegundos = 2f;
+    [Tooltip("Duración (segundos) de cada celda al moverse persiguiendo al jugador. Menor = más rápido. No afecta al movimiento normal ni a la huida.")]
+    [SerializeField] private float duracionMovimientoPersecucionSegundos = 2f;
 
     [Header("Efecto de impacto")]
     [Tooltip("Color del flash al recibir un golpe (rojo semi-transparente por defecto).")]
@@ -83,7 +103,13 @@ public class NPCMovimientoAleatorio : MonoBehaviour
     private bool _isMoving;
     private float _moveStartTime;
     private Coroutine _flashCoroutine;
+    private Coroutine _secuenciaContraataqueCoroutine;
     private Transform _jugador;
+    private MovimientoPorCeldas _movJugador;
+    private bool _perseguirJugador;
+    private bool _ataqueEnCurso;
+    private float _tiempoPermitidoProximoAtaque;
+    private Coroutine _monitorFinAtaqueCoroutine;
 
     [Header("Barra de vida")]
     [Tooltip("Distancia vertical entre el conejo y la barra de vida (en unidades mundo).")]
@@ -191,7 +217,11 @@ public class NPCMovimientoAleatorio : MonoBehaviour
         CrearBarraVida();
 
         var mov = FindObjectOfType<MovimientoPorCeldas>();
-        if (mov != null) _jugador = mov.transform;
+        if (mov != null)
+        {
+            _jugador = mov.transform;
+            _movJugador = mov;
+        }
 
         ActualizarAnimacion(_lastDirection, false);
         StartCoroutine(CicloAleatorio());
@@ -199,10 +229,13 @@ public class NPCMovimientoAleatorio : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (!_isMoving) return;
+        if (_ataqueEnCurso || !_isMoving) return;
 
         float elapsed = Time.time - _moveStartTime;
-        float t = Mathf.Clamp01(elapsed / duracionMovimientoSegundos);
+        float duracionPaso = _perseguirJugador
+            ? Mathf.Max(0.01f, duracionMovimientoPersecucionSegundos)
+            : Mathf.Max(0.01f, duracionMovimientoSegundos);
+        float t = Mathf.Clamp01(elapsed / duracionPaso);
         Vector2 centroCelda = Vector2.Lerp(_moveStartPosition, targetPosition, t);
         Vector2 posTransform = centroCelda - _offsetCentroSprite;
 
@@ -248,7 +281,73 @@ public class NPCMovimientoAleatorio : MonoBehaviour
     {
         while (true)
         {
-            bool jugadorCerca = JugadorEnRangoDeteccion();
+            if (_jugador == null)
+                _perseguirJugador = false;
+
+            if (_perseguirJugador && _jugador != null)
+            {
+                if (_ataqueEnCurso || _isMoving)
+                {
+                    yield return null;
+                    continue;
+                }
+
+                yield return new WaitForSeconds(Mathf.Max(0.02f, pausaEntrePasosPersecucion));
+                if (_ataqueEnCurso || _isMoving)
+                    continue;
+
+                Vector2 posP = _rb != null ? _rb.position : (Vector2)transform.position;
+                Vector2 centroP = posP + _offsetCentroSprite;
+                Vector2 celdaActualP = SnapToGrid(centroP);
+                targetPosition = celdaActualP;
+
+                if (EsCeldaAdyacenteAlJugador(celdaActualP))
+                {
+                    Vector2 centroJug = GetCentroMundoCeldaJugador();
+                    _lastDirection = DireccionOrtogonalDesdeHacia(celdaActualP, centroJug);
+                    ActualizarAnimacion(_lastDirection, false);
+
+                    if (Time.time < _tiempoPermitidoProximoAtaque)
+                    {
+                        yield return null;
+                        continue;
+                    }
+
+                    yield return null;
+                    ComenzarClipAtaque();
+                }
+                else
+                {
+                    bool movio = false;
+                    foreach (Vector2 dirP in DireccionesOrdenadasHaciaJugador(celdaActualP))
+                    {
+                        if (!PuedeAvanzarUnPaso(celdaActualP, dirP))
+                            continue;
+                        float step = PasoMundoUnaCelda();
+                        _lastDirection = dirP;
+                        _moveStartPosition = celdaActualP;
+                        targetPosition = celdaActualP + dirP * step;
+                        _isMoving = true;
+                        _moveStartTime = Time.time;
+                        ActualizarAnimacion(_lastDirection, true);
+                        movio = true;
+                        break;
+                    }
+
+                    if (!movio)
+                        yield return null;
+                }
+
+                continue;
+            }
+
+            if (_ataqueEnCurso)
+            {
+                yield return null;
+                continue;
+            }
+
+            bool jugadorCerca = !_perseguirJugador && JugadorEnRangoDeteccion();
 
             float pausa = jugadorCerca
                 ? pausaHuida
@@ -283,7 +382,7 @@ public class NPCMovimientoAleatorio : MonoBehaviour
             for (int k = 1; k <= celdas && todasLibres; k++)
             {
                 Vector2 celda = celdaActual + dir * (k * _worldCellSize);
-                if (IsCellBlockedByMapCollider(celda) || IsCellOccupiedByEntity(celda))
+                if (IsCellBlockedByMapCollider(celda) || IsCellOccupiedByEntity(celda) || IsCellBlockedByFlora(celda))
                     todasLibres = false;
             }
 
@@ -342,7 +441,7 @@ public class NPCMovimientoAleatorio : MonoBehaviour
             for (int k = 1; k <= celdas && libre; k++)
             {
                 Vector2 celda = celdaActual + dir * (k * _worldCellSize);
-                if (IsCellBlockedByMapCollider(celda) || IsCellOccupiedByEntity(celda))
+                if (IsCellBlockedByMapCollider(celda) || IsCellOccupiedByEntity(celda) || IsCellBlockedByFlora(celda))
                     libre = false;
             }
             if (libre) return dir;
@@ -363,31 +462,54 @@ public class NPCMovimientoAleatorio : MonoBehaviour
     }
 
     /// <summary>
-    /// Actualiza la animación según la dirección. Al parar muestra el primer frame (estático).
+    /// Actualiza la animación según la dirección. Al parar: estados estáticos si están definidos; si no, primer frame del caminar (speed 0).
     /// </summary>
     private void ActualizarAnimacion(Vector2 direction, bool moving)
     {
         if (animator == null) return;
 
-        if (moving)
-            animator.speed = 1f;
-        else
-            animator.speed = 0f;
-
+        string caminar;
+        string estatico;
         if (Mathf.Abs(direction.x) > Mathf.Abs(direction.y))
         {
-            animator.Play(EstadoPerfil, 0, 0f);
+            caminar = estadoCaminarPerfil;
+            estatico = estadoEstaticoPerfil;
             AplicarFlipX(direction.x > 0);
         }
         else if (direction.y > 0)
         {
-            animator.Play(EstadoPA, 0, 0f);
+            caminar = estadoCaminarPA;
+            estatico = estadoEstaticoPA;
             AplicarFlipX(false);
         }
         else
         {
-            animator.Play(EstadoAP, 0, 0f);
+            caminar = estadoCaminarAP;
+            estatico = estadoEstaticoAP;
             AplicarFlipX(false);
+        }
+
+        if (moving)
+        {
+            if (_perseguirJugador)
+            {
+                float dBase = Mathf.Max(0.01f, duracionMovimientoSegundos);
+                float dPer = Mathf.Max(0.01f, duracionMovimientoPersecucionSegundos);
+                animator.speed = Mathf.Clamp(dBase / dPer, 0.05f, 8f);
+            }
+            else
+                animator.speed = 1f;
+            animator.Play(caminar, 0, 0f);
+        }
+        else if (!string.IsNullOrEmpty(estatico))
+        {
+            animator.speed = 1f;
+            animator.Play(estatico, 0, 0f);
+        }
+        else
+        {
+            animator.speed = 0f;
+            animator.Play(caminar, 0, 0f);
         }
     }
 
@@ -430,23 +552,36 @@ public class NPCMovimientoAleatorio : MonoBehaviour
 
     private bool IsCellOccupiedByEntity(Vector2 cellCenter)
     {
+        return CeldaOcupacionUtil.EstaCeldaOcupadaPorEntidad(mapGrid, cellCenter, _effectiveMapLayers, transform.root);
+    }
+
+    private static bool ColliderEsFloraSolido(Collider2D c)
+    {
+        if (c == null || c.isTrigger) return false;
+        return c.gameObject.CompareTag(TagFlora) || c.transform.root.CompareTag(TagFlora);
+    }
+
+    private bool IsCellBlockedByFlora(Vector2 cellCenter)
+    {
+        if (!floraBloqueaMovimiento) return false;
+
         Vector2 checkPoint = cellCenter;
         if (mapGrid != null)
         {
             Vector3Int cell = mapGrid.WorldToCell(cellCenter);
             checkPoint = mapGrid.GetCellCenterWorld(cell);
         }
-        Collider2D[] hits = Physics2D.OverlapCircleAll(checkPoint, 0.3f);
-        foreach (var hit in hits)
+
+        const float radius = 0.3f;
+        Collider2D[] hits = Physics2D.OverlapCircleAll(checkPoint, radius);
+        foreach (Collider2D hit in hits)
         {
+            if (hit == null) continue;
             if (hit.transform.root == transform.root) continue;
-            if (hit.isTrigger) continue;
-            int layer = hit.gameObject.layer;
-            if (((1 << layer) & _effectiveMapLayers) != 0) continue;
-            if (hit.GetComponent<MovimientoPorCeldas>() != null
-                || hit.GetComponent<NPCMovimientoAleatorio>() != null)
+            if (ColliderEsFloraSolido(hit))
                 return true;
         }
+
         return false;
     }
 
@@ -470,10 +605,249 @@ public class NPCMovimientoAleatorio : MonoBehaviour
 
         if (vidaActual <= 0)
             Morir();
+        else if (habilitarContraataque)
+            ActivarPersecucionDesdeGolpe();
+    }
+
+    private float PasoMundoUnaCelda()
+    {
+        return Mathf.Abs(_worldCellSize) > 1e-4f ? Mathf.Abs(_worldCellSize) : cellSize;
+    }
+
+    private static Vector2 DireccionOrtogonalDesdeHacia(Vector2 desdeCeldaCentroMundo, Vector2 haciaPuntoMundo)
+    {
+        Vector2 delta = haciaPuntoMundo - desdeCeldaCentroMundo;
+        if (delta.sqrMagnitude < 1e-8f)
+            return Vector2.down;
+        if (Mathf.Abs(delta.x) > Mathf.Abs(delta.y))
+            return new Vector2(Mathf.Sign(delta.x), 0f);
+        return new Vector2(0f, Mathf.Sign(delta.y));
+    }
+
+    /// <summary>Centro mundo de la celda del jugador (misma lógica que el ataque del personaje).</summary>
+    private Vector2 GetCentroMundoCeldaJugador()
+    {
+        if (_jugador == null) return Vector2.zero;
+        if (_movJugador != null)
+            return _movJugador.GetPosicionCeldaActual();
+        if (mapGrid != null)
+        {
+            Vector3Int c = mapGrid.WorldToCell(_jugador.position);
+            return mapGrid.GetCellCenterWorld(c);
+        }
+
+        return SnapToGrid(_jugador.position);
+    }
+
+    private bool EsCeldaAdyacenteAlJugador(Vector2 celdaCentroNpc)
+    {
+        if (_jugador == null) return false;
+        Vector2 centroJugadorCelda = GetCentroMundoCeldaJugador();
+        if (mapGrid != null)
+        {
+            Vector3Int cNpc = mapGrid.WorldToCell(celdaCentroNpc);
+            Vector3Int celdaJugador = mapGrid.WorldToCell(centroJugadorCelda);
+            int m = Mathf.Abs(cNpc.x - celdaJugador.x) + Mathf.Abs(cNpc.y - celdaJugador.y);
+            return m == 1;
+        }
+
+        float step = PasoMundoUnaCelda();
+        Vector2 d = centroJugadorCelda - celdaCentroNpc;
+        return (Mathf.Abs(Mathf.Abs(d.x) - step) < step * 0.2f && Mathf.Abs(d.y) < step * 0.2f)
+            || (Mathf.Abs(Mathf.Abs(d.y) - step) < step * 0.2f && Mathf.Abs(d.x) < step * 0.2f);
+    }
+
+    private Vector2[] DireccionesOrdenadasHaciaJugador(Vector2 desdeCentroCelda)
+    {
+        Vector2 delta = _jugador != null ? GetCentroMundoCeldaJugador() - desdeCentroCelda : Vector2.down;
+        var d = new[] { Vector2.up, Vector2.down, Vector2.left, Vector2.right };
+        for (int i = 0; i < 4; i++)
+        {
+            int best = i;
+            for (int j = i + 1; j < 4; j++)
+            {
+                if (Vector2.Dot(delta, d[j]) > Vector2.Dot(delta, d[best]))
+                    best = j;
+            }
+
+            if (best != i)
+                (d[i], d[best]) = (d[best], d[i]);
+        }
+
+        return d;
+    }
+
+    private bool PuedeAvanzarUnPaso(Vector2 celdaInicioCentro, Vector2 dir)
+    {
+        float step = PasoMundoUnaCelda();
+        Vector2 siguiente = celdaInicioCentro + dir * step;
+        return !IsCellBlockedByMapCollider(siguiente)
+            && !IsCellOccupiedByEntity(siguiente)
+            && !IsCellBlockedByFlora(siguiente);
+    }
+
+    private void ActivarPersecucionDesdeGolpe()
+    {
+        if (!habilitarContraataque) return;
+        _perseguirJugador = true;
+        if (_ataqueEnCurso)
+            return;
+        if (_secuenciaContraataqueCoroutine != null)
+            StopCoroutine(_secuenciaContraataqueCoroutine);
+        _secuenciaContraataqueCoroutine = StartCoroutine(SecuenciaRotarYAtaqueTrasGolpe());
+    }
+
+    private IEnumerator SecuenciaRotarYAtaqueTrasGolpe()
+    {
+        _isMoving = false;
+        AnclarPosicionEnCeldaActual();
+        if (_jugador == null)
+        {
+            _secuenciaContraataqueCoroutine = null;
+            yield break;
+        }
+
+        Vector2 posBase = _rb != null ? _rb.position : (Vector2)transform.position;
+        Vector2 celda = SnapToGrid(posBase + _offsetCentroSprite);
+        _lastDirection = DireccionOrtogonalDesdeHacia(celda, GetCentroMundoCeldaJugador());
+        ActualizarAnimacion(_lastDirection, false);
+        yield return null;
+        if (EsCeldaAdyacenteAlJugador(celda))
+            ComenzarClipAtaque();
+        _secuenciaContraataqueCoroutine = null;
+    }
+
+    private void ComenzarClipAtaque()
+    {
+        if (!habilitarContraataque) return;
+        string estado = NombreEstadoAtaque(_lastDirection);
+        if (string.IsNullOrEmpty(estado))
+        {
+            Debug.LogWarning($"{name}: falta el nombre del estado de ataque para la dirección actual.", this);
+            return;
+        }
+
+        if (_monitorFinAtaqueCoroutine != null)
+        {
+            StopCoroutine(_monitorFinAtaqueCoroutine);
+            _monitorFinAtaqueCoroutine = null;
+        }
+
+        _ataqueEnCurso = true;
+        if (animator != null)
+        {
+            animator.speed = 1f;
+            animator.Play(estado, 0, 0f);
+        }
+
+        float tope = Mathf.Max(0.15f, tiempoMaximoClipAtaqueSegundos);
+        _monitorFinAtaqueCoroutine = StartCoroutine(MonitoreoFinAtaquePorTiempo(tope));
+    }
+
+    private IEnumerator MonitoreoFinAtaquePorTiempo(float segundos)
+    {
+        yield return new WaitForSeconds(segundos);
+        _monitorFinAtaqueCoroutine = null;
+        if (_ataqueEnCurso)
+            FinalizarClipAtaque();
+    }
+
+    private void AnclarPosicionEnCeldaActual()
+    {
+        Vector2 posBase = _rb != null ? _rb.position : (Vector2)transform.position;
+        Vector2 centroActual = posBase + _offsetCentroSprite;
+        targetPosition = SnapToGrid(centroActual);
+        Vector2 posTransform = targetPosition - _offsetCentroSprite;
+        if (_rb != null)
+            _rb.position = posTransform;
+        transform.position = posTransform;
+    }
+
+    private string NombreEstadoAtaque(Vector2 direction)
+    {
+        if (Mathf.Abs(direction.x) > Mathf.Abs(direction.y))
+            return estadoAtaquePerfil;
+        if (direction.y > 0f)
+            return estadoAtaquePA;
+        return estadoAtaqueAP;
+    }
+
+    /// <summary>Evento de animación: frame en el que aplica el “impacto” en la celda delante del NPC (hacia el jugador).</summary>
+    public void OnContraataqueImpacto()
+    {
+        if (!habilitarContraataque || !_ataqueEnCurso) return;
+        if (_jugador == null) return;
+
+        Vector2 posBase = _rb != null ? _rb.position : (Vector2)transform.position;
+        Vector2 centroActual = posBase + _offsetCentroSprite;
+        Vector2 celdaActual = SnapToGrid(centroActual);
+        if (!EsCeldaAdyacenteAlJugador(celdaActual))
+            return;
+
+        Vector2 dir = DireccionOrtogonalDesdeHacia(celdaActual, GetCentroMundoCeldaJugador());
+        float step = PasoMundoUnaCelda();
+        Vector2 celdaAtacada = celdaActual + dir * step;
+        Vector2 boxSize = new Vector2(step * 0.9f, step * 0.9f);
+
+        Collider2D[] hits = Physics2D.OverlapBoxAll(celdaAtacada, boxSize, 0f);
+        foreach (Collider2D hit in hits)
+        {
+            if (hit == null) continue;
+            var receptor = hit.GetComponentInParent<ReceptorImpactoVisual>();
+            if (receptor != null)
+                receptor.MostrarFlashImpacto();
+        }
+    }
+
+    /// <summary>Alias por si en el Animation Event se eligió otro nombre.</summary>
+    public void ContraataqueImpacto() => OnContraataqueImpacto();
+
+    /// <summary>Evento de animación: fin del clip de ataque (sigue persiguiendo si estaba en modo agresivo).</summary>
+    public void OnContraataqueFinalizado()
+    {
+        FinalizarClipAtaque();
+    }
+
+    /// <summary>Alias por si en el Animation Event se eligió otro nombre.</summary>
+    public void ContraataqueFinalizado() => OnContraataqueFinalizado();
+
+    private void FinalizarClipAtaque()
+    {
+        if (_monitorFinAtaqueCoroutine != null)
+        {
+            StopCoroutine(_monitorFinAtaqueCoroutine);
+            _monitorFinAtaqueCoroutine = null;
+        }
+
+        if (!_ataqueEnCurso) return;
+        _ataqueEnCurso = false;
+
+        _tiempoPermitidoProximoAtaque = Time.time + Mathf.Max(0.3f, pausaEntrePasosPersecucion);
+
+        if (_jugador != null)
+        {
+            Vector2 posBase = _rb != null ? _rb.position : (Vector2)transform.position;
+            Vector2 celda = SnapToGrid(posBase + _offsetCentroSprite);
+            _lastDirection = DireccionOrtogonalDesdeHacia(celda, GetCentroMundoCeldaJugador());
+        }
+
+        ActualizarAnimacion(_lastDirection, false);
     }
 
     private void Morir()
     {
+        if (_secuenciaContraataqueCoroutine != null)
+        {
+            StopCoroutine(_secuenciaContraataqueCoroutine);
+            _secuenciaContraataqueCoroutine = null;
+        }
+
+        if (_monitorFinAtaqueCoroutine != null)
+        {
+            StopCoroutine(_monitorFinAtaqueCoroutine);
+            _monitorFinAtaqueCoroutine = null;
+        }
+
         Vector2 posBase = _rb != null ? _rb.position : (Vector2)transform.position;
         Vector2 centroActual = posBase + _offsetCentroSprite;
         Vector2 centroCelda = SnapToGrid(centroActual);
